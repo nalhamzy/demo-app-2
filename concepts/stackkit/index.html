@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>StackKit - The Agency OS for solo operators</title>
+<style>
+  :root {
+    --bg: #fafaf7;
+    --surface: #ffffff;
+    --surface-2: #f3f3ee;
+    --ink: #14140f;
+    --ink-2: #3f3f37;
+    --muted: #76766a;
+    --line: #e8e6dd;
+    --line-2: #d6d4c8;
+    --accent: #5b3df5;
+    --accent-2: #7c64ff;
+    --pop: #faff75;
+    --soft: #f4f1ff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); color: var(--ink); font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Inter", "SF Pro Text", Roboto, sans-serif; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 28px; }
+
+  /* Nav */
+  header.nav { position: sticky; top: 0; z-index: 30; background: rgba(250,250,247,0.86); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
+  .nav-row { display: flex; align-items: center; justify-content: space-between; height: 70px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 20px; letter-spacing: -0.01em; }
+  .brand-mark { width: 28px; height: 28px; border-radius: 7px; background: var(--ink); position: relative; }
+  .brand-mark::before, .brand-mark::after { content: ""; position: absolute; background: var(--pop); }
+  .brand-mark::before { top: 6px; left: 6px; width: 16px; height: 4px; border-radius: 2px; }
+  .brand-mark::after { top: 14px; left: 6px; width: 10px; height: 4px; border-radius: 2px; }
+  .nav-links { display: flex; gap: 28px; align-items: center; font-size: 15px; color: var(--ink-2); }
+  .nav-links a:hover { color: var(--accent); }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; font-size: 15px; padding: 11px 20px; border-radius: 10px; border: 1px solid transparent; cursor: pointer; transition: all 0.15s ease; }
+  .btn-primary { background: var(--ink); color: var(--bg); }
+  .btn-primary:hover { background: var(--accent); }
+  .btn-outline { background: transparent; color: var(--ink); border-color: var(--line-2); }
+  .btn-outline:hover { background: var(--surface-2); }
+  .btn-pop { background: var(--pop); color: var(--ink); }
+  .btn-pop:hover { background: #f0f55a; }
+  .btn-lg { padding: 15px 26px; font-size: 16px; }
+
+  /* Hero */
+  .hero { padding: 96px 0 80px; position: relative; overflow: hidden; }
+  .hero-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 56px; align-items: center; }
+  .badge { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--accent); background: var(--soft); border: 1px solid #d8d0ff; padding: 6px 12px; border-radius: 999px; }
+  .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  h1.title { font-size: clamp(40px, 5.5vw, 64px); line-height: 1.02; letter-spacing: -0.03em; font-weight: 800; margin: 18px 0 18px; }
+  h1 .hl { background: linear-gradient(120deg, var(--pop) 0%, var(--pop) 100%); padding: 0 6px; border-radius: 6px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+  .lede { font-size: 19px; color: var(--ink-2); max-width: 56ch; margin-bottom: 30px; }
+  .hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 22px; }
+  .micro { font-size: 13px; color: var(--muted); display: flex; gap: 18px; flex-wrap: wrap; }
+  .micro span::before { content: "\2022"; color: var(--accent); margin-right: 6px; font-weight: 800; }
+
+  /* Hero product preview */
+  .preview { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 24px 60px rgba(20,20,15,0.08); overflow: hidden; }
+  .preview-head { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: var(--surface-2); border-bottom: 1px solid var(--line); }
+  .preview-head .dots { display: flex; gap: 6px; }
+  .preview-head .dots span { width: 11px; height: 11px; border-radius: 50%; background: var(--line-2); }
+  .preview-head .url { font-size: 12px; color: var(--muted); margin-left: auto; font-family: ui-monospace, "SF Mono", monospace; }
+  .preview-body { padding: 22px; }
+  .preview-tabs { display: flex; gap: 6px; margin-bottom: 18px; flex-wrap: wrap; }
+  .ptab { font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 6px; background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--line); }
+  .ptab.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .ptable { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .ptable th { text-align: left; font-weight: 700; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  .ptable td { padding: 10px 10px; border-bottom: 1px solid var(--line); }
+  .ptable td.client b { font-weight: 700; }
+  .pill-status { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .ps-active { background: #e8fff1; color: #126838; }
+  .ps-pitch { background: #fff5d8; color: #8a5a00; }
+  .ps-paused { background: var(--surface-2); color: var(--muted); }
+
+  /* Sections */
+  section { padding: 96px 0; }
+  .kicker { font-size: 12px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); }
+  h2 { font-size: clamp(30px, 3.6vw, 44px); font-weight: 800; letter-spacing: -0.025em; line-height: 1.1; margin: 12px 0 16px; max-width: 22ch; }
+  .lead { color: var(--ink-2); font-size: 18px; max-width: 60ch; }
+
+  /* Problem / Promise */
+  .pp { background: var(--ink); color: #f3f1e8; }
+  .pp .kicker { color: var(--pop); }
+  .pp h2 { color: #f8f6ec; }
+  .pp .lead { color: #b6b4a6; }
+  .pp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 44px; }
+  .pp-card { background: #1c1c15; border: 1px solid #2a2a22; border-radius: 16px; padding: 30px; }
+  .pp-card h3 { font-size: 20px; font-weight: 800; margin-bottom: 14px; color: #fff; }
+  .pp-list { list-style: none; }
+  .pp-list li { padding: 10px 0 10px 28px; position: relative; font-size: 16px; color: #c9c7b9; border-bottom: 1px solid #2a2a22; }
+  .pp-list li:last-child { border-bottom: none; }
+  .pp-list li::before { content: ""; position: absolute; left: 0; top: 16px; width: 14px; height: 14px; border-radius: 4px; background: #3a2a2a; }
+  .pp-card.win .pp-list li::before { background: var(--pop); }
+
+  /* How it works */
+  .steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-top: 48px; }
+  .step { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 22px; }
+  .step .num { width: 32px; height: 32px; border-radius: 8px; background: var(--pop); color: var(--ink); display: grid; place-items: center; font-weight: 800; font-size: 14px; margin-bottom: 14px; }
+  .step h4 { font-size: 16px; font-weight: 800; margin-bottom: 6px; }
+  .step p { color: var(--muted); font-size: 14px; }
+
+  /* Modules / what's inside */
+  .modules { background: var(--surface); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .mod-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 48px; }
+  .mod { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 26px; transition: transform 0.18s ease, box-shadow 0.18s ease; }
+  .mod:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(20,20,15,0.06); }
+  .mod-icon { width: 44px; height: 44px; border-radius: 10px; background: var(--soft); display: grid; place-items: center; margin-bottom: 16px; color: var(--accent); }
+  .mod h4 { font-size: 18px; font-weight: 800; margin-bottom: 6px; }
+  .mod p { color: var(--muted); font-size: 14px; margin-bottom: 12px; }
+  .mod-meta { font-size: 12px; color: var(--muted); display: flex; gap: 14px; }
+  .mod-meta b { color: var(--ink); font-weight: 700; }
+
+  /* Pricing */
+  .pricing-bg { background: linear-gradient(180deg, var(--bg), var(--surface-2)); }
+  .price-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: 44px; align-items: stretch; }
+  .price { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 28px; display: flex; flex-direction: column; gap: 10px; }
+  .price.feat { background: var(--ink); color: #f3f1e8; border-color: var(--ink); position: relative; }
+  .price.feat::before { content: "Flagship"; position: absolute; top: -10px; right: 18px; background: var(--pop); color: var(--ink); font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 999px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .price h4 { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+  .price.feat h4 { color: #b6b4a6; }
+  .price .amt { font-size: 38px; font-weight: 800; letter-spacing: -0.025em; line-height: 1; }
+  .price .amt span { font-size: 14px; color: var(--muted); font-weight: 500; margin-left: 4px; }
+  .price.feat .amt span { color: #b6b4a6; }
+  .price .desc { color: var(--muted); font-size: 14px; }
+  .price.feat .desc { color: #b6b4a6; }
+  .price ul { list-style: none; font-size: 14px; color: var(--ink-2); margin: 8px 0; }
+  .price.feat ul { color: #d4d2c4; }
+  .price li { padding: 7px 0; border-bottom: 1px solid var(--line); display: flex; gap: 8px; }
+  .price.feat li { border-color: #2a2a22; }
+  .price li::before { content: "\2713"; color: var(--accent); font-weight: 800; }
+  .price.feat li::before { color: var(--pop); }
+  .price .cta { margin-top: auto; padding-top: 8px; }
+
+  /* Testimonials */
+  .tcards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 44px; }
+  .tcard { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 26px; }
+  .ph-tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 10px; border-radius: 6px; background: var(--soft); color: var(--accent); margin-bottom: 16px; }
+  .tcard blockquote { font-size: 16px; line-height: 1.55; color: var(--ink); margin-bottom: 18px; }
+  .tperson { display: flex; align-items: center; gap: 12px; }
+  .tav { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
+  .tperson b { display: block; font-weight: 700; font-size: 14px; }
+  .tperson span { color: var(--muted); font-size: 13px; }
+
+  /* FAQ */
+  details { border: 1px solid var(--line); border-radius: 12px; padding: 18px 22px; background: var(--surface); margin-top: 12px; }
+  details summary { cursor: pointer; font-weight: 700; font-size: 17px; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 18px; }
+  details summary::-webkit-details-marker { display: none; }
+  details summary::after { content: "+"; font-size: 22px; color: var(--accent); font-weight: 700; }
+  details[open] summary::after { content: "-"; }
+  details p { margin-top: 12px; color: var(--ink-2); font-size: 16px; }
+  .faq-list { margin-top: 40px; max-width: 860px; }
+
+  /* Final CTA */
+  .final { background: var(--pop); color: var(--ink); border-radius: 28px; padding: 80px 32px; margin: 96px auto; max-width: 1200px; text-align: center; position: relative; overflow: hidden; }
+  .final::before, .final::after { content: ""; position: absolute; border-radius: 50%; }
+  .final::before { top: -120px; left: -80px; width: 280px; height: 280px; background: rgba(91,61,245,0.12); }
+  .final::after { bottom: -100px; right: -80px; width: 240px; height: 240px; background: rgba(20,20,15,0.06); }
+  .final h2 { color: var(--ink); max-width: 22ch; margin: 0 auto 14px; }
+  .final p { color: var(--ink-2); max-width: 56ch; margin: 0 auto 32px; font-size: 18px; }
+
+  /* Footer */
+  footer { padding: 40px 0; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+  .foot-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+
+  @media (max-width: 920px) {
+    .nav-links a:not(.btn) { display: none; }
+    .hero-grid { grid-template-columns: 1fr; gap: 40px; }
+    .pp-grid, .mod-grid, .price-grid, .tcards { grid-template-columns: 1fr; }
+    .steps { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap nav-row">
+    <a class="brand" href="#"><span class="brand-mark"></span>StackKit</a>
+    <nav class="nav-links">
+      <a href="#how">How it works</a>
+      <a href="#whats-inside">Inside the bundle</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+      <a class="btn btn-primary" href="#cta">Get the bundle</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <span class="badge"><span class="dot"></span>v2026.1 - just shipped</span>
+        <h1 class="title">The <span class="hl">Agency OS</span> that drops in on day one of your next agency.</h1>
+        <p class="lede">StackKit is a tightly opinionated Notion bundle for solo and 1-5 person marketing, design, and dev agencies. Client CRM, project tracker, proposal generator, retainer dashboard, and SOP library - all wired together, ready to use this afternoon.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary btn-lg" href="#cta">Get the $79 bundle</a>
+          <a class="btn btn-outline btn-lg" href="#whats-inside">See what's inside</a>
+        </div>
+        <div class="micro">
+          <span>One-time purchase, lifetime access</span>
+          <span>Free updates for v2026.x</span>
+          <span>Refund within 14 days, no questions</span>
+        </div>
+      </div>
+      <aside class="preview">
+        <div class="preview-head">
+          <div class="dots"><span></span><span></span><span></span></div>
+          <div class="url">notion.so/agency-os</div>
+        </div>
+        <div class="preview-body">
+          <div class="preview-tabs">
+            <span class="ptab active">CRM</span>
+            <span class="ptab">Projects</span>
+            <span class="ptab">Proposals</span>
+            <span class="ptab">Retainers</span>
+            <span class="ptab">SOPs</span>
+          </div>
+          <table class="ptable">
+            <thead>
+              <tr><th>Client</th><th>Stage</th><th>MRR</th><th>Owner</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="client"><b>Riverside Studio</b></td><td><span class="pill-status ps-active">Active</span></td><td>$4,500</td><td>You</td></tr>
+              <tr><td class="client"><b>North Coast Co.</b></td><td><span class="pill-status ps-active">Active</span></td><td>$2,800</td><td>You</td></tr>
+              <tr><td class="client"><b>Glasshouse Labs</b></td><td><span class="pill-status ps-pitch">Proposal</span></td><td>-</td><td>You</td></tr>
+              <tr><td class="client"><b>Ember and Oak</b></td><td><span class="pill-status ps-pitch">Proposal</span></td><td>-</td><td>You</td></tr>
+              <tr><td class="client"><b>Marquee Group</b></td><td><span class="pill-status ps-paused">Paused</span></td><td>$0</td><td>You</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="pp">
+    <div class="wrap">
+      <span class="kicker">The problem</span>
+      <h2>Generic Notion templates fall apart the second you have a real client.</h2>
+      <p class="lead">Most "second brain" templates are wallpaper. The minute you take on three retainers, two pitches, and a launch, you end up Frankenstein-ing five tools together. StackKit is built the other way around: from the realities of running a small agency.</p>
+      <div class="pp-grid">
+        <div class="pp-card">
+          <h3>What you have today</h3>
+          <ul class="pp-list">
+            <li>A CRM that doesn't connect to projects</li>
+            <li>Proposal copy buried in seven Google Docs</li>
+            <li>SOPs in someone's head, not the system</li>
+            <li>A retainer dashboard that's actually a spreadsheet</li>
+            <li>No clean handoff when you bring on a contractor</li>
+          </ul>
+        </div>
+        <div class="pp-card win">
+          <h3>What StackKit gives you</h3>
+          <ul class="pp-list">
+            <li>One linked CRM, projects, proposals, and retainers in Notion</li>
+            <li>A proposal generator with reusable scopes and prices</li>
+            <li>A versioned SOP library you can hand to a new contractor</li>
+            <li>A retainer dashboard with hours and burn-down per client</li>
+            <li>A versioning scheme (v2026.x) so updates ship for free</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="how">
+    <div class="wrap">
+      <span class="kicker">How it works</span>
+      <h2>Five steps, then you are running your agency from one tab.</h2>
+      <p class="lead">No setup call required. Most operators are live within 90 minutes of duplicating the template.</p>
+      <div class="steps">
+        <div class="step">
+          <div class="num">1</div>
+          <h4>Buy and duplicate</h4>
+          <p>One-click duplicate from Gumroad into your own Notion workspace. Yours forever.</p>
+        </div>
+        <div class="step">
+          <div class="num">2</div>
+          <h4>Plug in current clients</h4>
+          <p>Paste your existing client list. The CRM auto-populates the projects and retainer dashboards.</p>
+        </div>
+        <div class="step">
+          <div class="num">3</div>
+          <h4>Customize the proposal</h4>
+          <p>Drop in your services, scopes, and prices. The proposal generator handles the rest.</p>
+        </div>
+        <div class="step">
+          <div class="num">4</div>
+          <h4>Seed the SOP library</h4>
+          <p>Twenty starter SOPs for marketing, design, and dev. Edit, version, hand to contractors.</p>
+        </div>
+        <div class="step">
+          <div class="num">5</div>
+          <h4>Run a week</h4>
+          <p>By the end of week one, you have a CRM, a pipeline, three proposals out, and a clean Friday review.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="whats-inside" class="modules">
+    <div class="wrap">
+      <span class="kicker">What's inside</span>
+      <h2>Six modules, built like product, not like a wiki.</h2>
+      <p class="lead">Every module is opinionated and connected. No more linking 14 databases by hand.</p>
+      <div class="mod-grid">
+        <div class="mod">
+          <div class="mod-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"/><path d="M2 21c0-3.5 3-6 7-6s7 2.5 7 6"/><circle cx="17" cy="6" r="3"/><path d="M22 17c0-2-1.5-3.5-4-3.5"/></svg></div>
+          <h4>Client CRM</h4>
+          <p>Pipeline stages, contacts, MRR roll-up, last-touch reminders. Built for service shops, not SaaS sales.</p>
+          <div class="mod-meta"><b>14 views</b><span>5 connected DBs</span></div>
+        </div>
+        <div class="mod">
+          <div class="mod-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M8 4v16"/></svg></div>
+          <h4>Project Tracker</h4>
+          <p>Per-client projects with milestones, deliverables, time logged, and a built-in client-facing portal view.</p>
+          <div class="mod-meta"><b>9 views</b><span>Client portal ready</span></div>
+        </div>
+        <div class="mod">
+          <div class="mod-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg></div>
+          <h4>Proposal Generator</h4>
+          <p>Scope library + price book + reusable terms. Build a polished proposal in 12 minutes flat.</p>
+          <div class="mod-meta"><b>30 starter scopes</b><span>3 layouts</span></div>
+        </div>
+        <div class="mod">
+          <div class="mod-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></svg></div>
+          <h4>Retainer Dashboard</h4>
+          <p>Hours used vs budget, burn-down per client, monthly health score. End the "are we over hours?" panic.</p>
+          <div class="mod-meta"><b>6 views</b><span>Auto rollups</span></div>
+        </div>
+        <div class="mod">
+          <div class="mod-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h12l4 4v12H4z"/><path d="M14 4v6h6M8 14h8M8 18h6"/></svg></div>
+          <h4>SOP Library</h4>
+          <p>20 starter SOPs across onboarding, design, dev, and ops. Versioned so contractors can't run yesterday's playbook.</p>
+          <div class="mod-meta"><b>20 SOPs</b><span>Version control</span></div>
+        </div>
+        <div class="mod">
+          <div class="mod-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+          <h4>Weekly Review</h4>
+          <p>One page that pulls pipeline, project health, retainer burn, and your top three pre-set questions for Friday.</p>
+          <div class="mod-meta"><b>1 page</b><span>Pre-wired prompts</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="pricing" class="pricing-bg">
+    <div class="wrap">
+      <span class="kicker">Pricing</span>
+      <h2>Buy once. Or subscribe for monthly drops.</h2>
+      <p class="lead">Most operators get the bundle, run it for two weeks, then add the Lifetime pass when their first new client signs.</p>
+      <div class="price-grid">
+        <div class="price">
+          <h4>Single template</h4>
+          <div class="amt">$29<span> one-time</span></div>
+          <p class="desc">Pick one: CRM, Proposal Generator, or Retainer Dashboard.</p>
+          <ul>
+            <li>One module only</li>
+            <li>Notion duplicate link</li>
+            <li>Email support</li>
+            <li>Free patch updates</li>
+          </ul>
+          <div class="cta"><a class="btn btn-outline" href="#cta">Buy single</a></div>
+        </div>
+        <div class="price feat">
+          <h4>Agency OS</h4>
+          <div class="amt">$79<span> one-time</span></div>
+          <p class="desc">All six modules, fully connected.</p>
+          <ul>
+            <li>CRM + Projects + Proposals</li>
+            <li>Retainer dashboard + SOPs</li>
+            <li>Weekly review template</li>
+            <li>v2026.x updates free</li>
+          </ul>
+          <div class="cta"><a class="btn btn-pop" href="#cta">Get the bundle</a></div>
+        </div>
+        <div class="price">
+          <h4>Template Club</h4>
+          <div class="amt">$19<span> / month</span></div>
+          <p class="desc">One new template per month plus monthly office hours.</p>
+          <ul>
+            <li>One new drop / month</li>
+            <li>Live monthly office hours</li>
+            <li>Private members feed</li>
+            <li>Cancel any time</li>
+          </ul>
+          <div class="cta"><a class="btn btn-outline" href="#cta">Join the club</a></div>
+        </div>
+        <div class="price">
+          <h4>Lifetime pass</h4>
+          <div class="amt">$199<span> one-time</span></div>
+          <p class="desc">Everything past, present, and future.</p>
+          <ul>
+            <li>Agency OS bundle</li>
+            <li>All single templates</li>
+            <li>Every future drop, free</li>
+            <li>Priority support</li>
+          </ul>
+          <div class="cta"><a class="btn btn-outline" href="#cta">Go lifetime</a></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <span class="kicker">What buyers say</span>
+      <h2>Receipts from the first wave of operators.</h2>
+      <p class="lead">Real testimonials slot here as the first 25 buyers ship feedback.</p>
+      <div class="tcards">
+        <div class="tcard">
+          <span class="ph-tag">Placeholder testimonial</span>
+          <blockquote>"Lorem ipsum dolor sit amet. I replaced a CRM, a proposal tool, and three Google Docs in one afternoon. The retainer dashboard alone was worth $79."</blockquote>
+          <div class="tperson"><div class="tav"></div><div><b>Solo operator</b><span>2-person design studio</span></div></div>
+        </div>
+        <div class="tcard">
+          <span class="ph-tag">Placeholder testimonial</span>
+          <blockquote>"Lorem ipsum: the SOP library cut my contractor onboarding from three days to under an hour. Felt like cheating."</blockquote>
+          <div class="tperson"><div class="tav"></div><div><b>Agency founder</b><span>4-person dev shop</span></div></div>
+        </div>
+        <div class="tcard">
+          <span class="ph-tag">Placeholder testimonial</span>
+          <blockquote>"Lorem ipsum sit amet. The proposal generator helped me close a $14k retainer in week two. I bought the lifetime pass the same day."</blockquote>
+          <div class="tperson"><div class="tav"></div><div><b>Founder</b><span>3-person marketing agency</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="wrap">
+      <span class="kicker">FAQ</span>
+      <h2>The honest answers.</h2>
+      <div class="faq-list">
+        <details>
+          <summary>What if Notion changes a feature and breaks the template?</summary>
+          <p>StackKit ships under a v2026.x versioning scheme. If Notion changes a feature, I patch the template and email all buyers a new duplicate link, free. Lifetime pass holders get every future major version included.</p>
+        </details>
+        <details>
+          <summary>What stops other creators from cloning this?</summary>
+          <p>The bundle's depth (six wired modules) plus the SOP library plus the active Template Club is the moat. Anyone can copy a CRM table; it's much harder to copy 20 versioned SOPs and a monthly drop cadence.</p>
+        </details>
+        <details>
+          <summary>Is this for solo operators or full agencies?</summary>
+          <p>Built for 1-5 person marketing, design, and dev agencies. Solo operators get the most leverage. Larger agencies (10+) outgrow some modules - we recommend the Lifetime pass and pairing with a dedicated PM tool.</p>
+        </details>
+        <details>
+          <summary>Do I need to be a Notion power user?</summary>
+          <p>No. If you can duplicate a page and edit a database, you're fine. The bundle ships with a 12-minute setup walkthrough plus a YouTube playlist for each module.</p>
+        </details>
+        <details>
+          <summary>What's the refund policy?</summary>
+          <p>14 days, no questions asked. Email me with the order ID and the refund hits within 48 hours.</p>
+        </details>
+        <details>
+          <summary>How do I get future updates?</summary>
+          <p>One-time bundle buyers get all v2026.x patches and feature drops free. Major version jumps (v2027+) are free for Lifetime pass holders, optional for everyone else.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section id="cta" style="padding: 0;">
+    <div class="wrap">
+      <div class="final">
+        <h2>Stop wiring 14 databases by hand.</h2>
+        <p>Drop StackKit in this afternoon. Run your agency out of one tab by Friday.</p>
+        <a class="btn btn-primary btn-lg" href="#">Get the $79 Agency OS</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot-row">
+    <div>StackKit - Notion templates for solo agency operators.</div>
+    <div>Concept demo. Not a live offer.</div>
+  </div>
+</footer>
+
+</body>
+</html>

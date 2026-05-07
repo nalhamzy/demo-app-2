@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Concept Gallery - 3 winning solo-business landing pages</title>
+<style>
+  :root {
+    --bg: #0e0e14;
+    --bg-2: #15161e;
+    --ink: #f2f2f5;
+    --ink-2: #b6b8c4;
+    --muted: #7c7e8c;
+    --line: rgba(255,255,255,0.08);
+    --line-2: rgba(255,255,255,0.14);
+    --c1: #ff5b2e;
+    --c2: #1d4ed8;
+    --c3: #5b3df5;
+    --pop: #c6f24e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); color: var(--ink); font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "SF Pro Text", Roboto, sans-serif; line-height: 1.55; -webkit-font-smoothing: antialiased; min-height: 100vh; }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 0 28px; }
+
+  header { padding: 56px 0 24px; border-bottom: 1px solid var(--line); }
+  .crumb { font-size: 13px; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600; }
+  h1 { font-size: clamp(36px, 5vw, 56px); font-weight: 800; letter-spacing: -0.025em; line-height: 1.05; margin: 14px 0 18px; max-width: 24ch; }
+  h1 em { font-style: normal; background: linear-gradient(120deg, var(--c1), var(--pop)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .lede { font-size: 18px; color: var(--ink-2); max-width: 60ch; margin-bottom: 28px; }
+  .meta-row { display: flex; gap: 24px; flex-wrap: wrap; padding: 18px 0 36px; font-size: 13px; color: var(--muted); }
+  .meta-row span b { color: var(--ink); font-weight: 700; }
+
+  main { padding: 48px 0 80px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 22px; }
+  .card { background: var(--bg-2); border: 1px solid var(--line); border-radius: 18px; padding: 28px; display: flex; flex-direction: column; gap: 14px; transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease; position: relative; overflow: hidden; }
+  .card:hover { transform: translateY(-4px); border-color: var(--line-2); box-shadow: 0 30px 60px rgba(0,0,0,0.3); }
+  .card .accent-bar { position: absolute; top: 0; left: 0; right: 0; height: 4px; }
+  .card.c1 .accent-bar { background: linear-gradient(90deg, var(--c1), #ffb020); }
+  .card.c2 .accent-bar { background: linear-gradient(90deg, var(--c2), #0ea5e9); }
+  .card.c3 .accent-bar { background: linear-gradient(90deg, var(--c3), var(--pop)); }
+  .rank { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+  .rank b { color: var(--ink); }
+  .score { display: inline-flex; align-items: baseline; gap: 4px; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-weight: 700; font-size: 14px; padding: 4px 10px; border-radius: 6px; background: rgba(255,255,255,0.04); border: 1px solid var(--line); }
+  .score b { font-size: 17px; }
+  .score span { color: var(--muted); }
+  .card h2 { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
+  .card.c1 h2 { color: #ffb59a; }
+  .card.c2 h2 { color: #b8d0ff; }
+  .card.c3 h2 { color: #d6caff; }
+  .card .one-liner { color: var(--ink-2); font-size: 15px; min-height: 72px; }
+  .card .tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tag { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line-2); color: var(--ink-2); letter-spacing: 0.04em; }
+  .price-line { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 13px; color: var(--ink-2); margin-top: 4px; }
+  .price-line b { color: var(--ink); }
+  .open { margin-top: auto; padding-top: 18px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 700; }
+  .open .arrow { width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.06); display: grid; place-items: center; transition: background 0.15s ease; }
+  .card:hover .open .arrow { background: var(--ink); color: var(--bg); }
+
+  .takeaway { margin-top: 64px; padding: 32px; background: linear-gradient(135deg, rgba(91,61,245,0.1), rgba(255,91,46,0.08)); border: 1px solid var(--line); border-radius: 18px; }
+  .takeaway h3 { font-size: 20px; font-weight: 800; margin-bottom: 12px; }
+  .takeaway p { color: var(--ink-2); font-size: 15px; max-width: 70ch; margin-bottom: 8px; }
+
+  footer { border-top: 1px solid var(--line); padding: 28px 0 60px; color: var(--muted); font-size: 13px; }
+  .foot-row { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+
+  @media (max-width: 880px) {
+    .grid { grid-template-columns: 1fr; }
+    .card .one-liner { min-height: 0; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="crumb">Concept gallery / Pipeline output</div>
+    <h1>Three productized solo businesses, <em>three landing pages</em>.</h1>
+    <p class="lede">The top three winners from a 15-idea evaluation. Each concept is a complete, standalone landing-page demo built from a single source-of-truth markdown brief.</p>
+    <div class="meta-row">
+      <span><b>3</b> concepts</span>
+      <span><b>15</b> ideas evaluated</span>
+      <span><b>25</b>-point rubric</span>
+      <span>Updated <b>2026-05-07</b></span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div class="grid">
+
+      <a class="card c1" href="sprint90/index.html">
+        <span class="accent-bar"></span>
+        <div class="rank"><span>Winner #1</span></div>
+        <div class="score"><b>22</b><span>/ 25</span></div>
+        <h2>Sprint90</h2>
+        <p class="one-liner">A four-week productized 1:1 coaching package built around a single before-and-after for one ICP. Junior PM to senior PM in 90 days.</p>
+        <div class="tags">
+          <span class="tag">Coaching</span>
+          <span class="tag">Productized service</span>
+          <span class="tag">Speed: 4</span>
+          <span class="tag">Solo: 5</span>
+        </div>
+        <div class="price-line"><b>$97</b> intro / <b>$1,500</b> sprint / <b>$750</b> retainer</div>
+        <div class="open">
+          <span>Open landing page</span>
+          <span class="arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
+        </div>
+      </a>
+
+      <a class="card c2" href="auditflow/index.html">
+        <span class="accent-bar"></span>
+        <div class="rank"><span>Winner #2</span></div>
+        <div class="score"><b>22</b><span>/ 25</span></div>
+        <h2>AuditFlow</h2>
+        <p class="one-liner">A flat-fee $499 AI Automation Audit for service SMBs. Recorded Loom walkthrough + 5-automation roadmap with ROI estimates per workflow, in 5 days.</p>
+        <div class="tags">
+          <span class="tag">AI consulting</span>
+          <span class="tag">Productized audit</span>
+          <span class="tag">Ceiling: 5</span>
+          <span class="tag">Solo: 5</span>
+        </div>
+        <div class="price-line"><b>$499</b> audit / <b>$2,500</b> build / <b>$1,500-3,500</b>/mo</div>
+        <div class="open">
+          <span>Open landing page</span>
+          <span class="arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
+        </div>
+      </a>
+
+      <a class="card c3" href="stackkit/index.html">
+        <span class="accent-bar"></span>
+        <div class="rank"><span>Winner #3</span></div>
+        <div class="score"><b>20</b><span>/ 25</span></div>
+        <h2>StackKit</h2>
+        <p class="one-liner">A Notion template shop laser-focused on solo agency operators. The "Agency OS" bundle: CRM, projects, proposals, retainer dashboard, and SOP library.</p>
+        <div class="tags">
+          <span class="tag">Digital product</span>
+          <span class="tag">Notion</span>
+          <span class="tag">Cost: 5</span>
+          <span class="tag">Solo: 5</span>
+        </div>
+        <div class="price-line"><b>$29</b> single / <b>$79</b> bundle / <b>$19</b>/mo / <b>$199</b> lifetime</div>
+        <div class="open">
+          <span>Open landing page</span>
+          <span class="arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
+        </div>
+      </a>
+
+    </div>
+
+    <aside class="takeaway">
+      <h3>Why these three?</h3>
+      <p>Sprint90 and AuditFlow tied at 22/25 - both productize an existing skill, ship before the first dollar lands, and require zero inventory. AuditFlow has the highest income ceiling on the list, Sprint90 has the fastest path to revenue.</p>
+      <p>StackKit takes the #3 slot at 20/25 over Virtual Assistant on tiebreak: every sale is leverage rather than a billable hour. Lower ceiling than the top two, but true passive once seeded.</p>
+    </aside>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap foot-row">
+    <div>Concept gallery - rendered from /winning-ideas/ briefs.</div>
+    <div>Demo concepts. Not live offers.</div>
+  </div>
+</footer>
+
+</body>
+</html>

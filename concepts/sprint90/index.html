@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Sprint90 — Land your senior PM offer in 90 days</title>
+<style>
+  :root{
+    --ink:#0a0a14;
+    --ink-2:#1a1a2e;
+    --paper:#fff8f0;
+    --paper-2:#ffeede;
+    --accent:#ff5b2e;
+    --accent-2:#ffb020;
+    --lime:#c6f24e;
+    --rule:#1a1a2e;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--paper);color:var(--ink);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1140px;margin:0 auto;padding:0 28px}
+
+  /* Nav */
+  header.nav{position:sticky;top:0;z-index:20;background:var(--paper);border-bottom:2px solid var(--ink)}
+  .nav-row{display:flex;align-items:center;justify-content:space-between;height:72px}
+  .brand{font-weight:900;letter-spacing:-0.02em;font-size:24px;display:flex;align-items:center;gap:10px}
+  .brand-mark{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent-2));box-shadow:3px 3px 0 var(--ink)}
+  .nav-links{display:flex;gap:28px;align-items:center;font-weight:600;font-size:15px}
+  .nav-links a:hover{color:var(--accent)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;padding:12px 20px;border:2px solid var(--ink);border-radius:999px;background:var(--ink);color:var(--paper);box-shadow:4px 4px 0 var(--accent);transition:transform .12s ease, box-shadow .12s ease}
+  .btn:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--accent)}
+  .btn.alt{background:var(--paper);color:var(--ink);box-shadow:4px 4px 0 var(--ink)}
+  .btn.alt:hover{box-shadow:6px 6px 0 var(--ink)}
+  .btn.lg{font-size:17px;padding:16px 28px}
+
+  /* Hero */
+  .hero{position:relative;padding:88px 0 96px;overflow:hidden}
+  .hero::before{content:"";position:absolute;inset:0;background:
+    radial-gradient(600px 300px at 85% 10%, rgba(255,176,32,.35), transparent 60%),
+    radial-gradient(500px 280px at 10% 110%, rgba(198,242,78,.45), transparent 60%);
+    pointer-events:none}
+  .eyebrow{display:inline-block;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;background:var(--lime);border:2px solid var(--ink);padding:6px 12px;border-radius:999px;box-shadow:3px 3px 0 var(--ink)}
+  h1.title{font-size:clamp(40px,6vw,76px);line-height:1.02;letter-spacing:-0.03em;font-weight:900;margin:24px 0 20px;max-width:14ch}
+  h1 .swoop{position:relative;background:linear-gradient(120deg,var(--accent),var(--accent-2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lede{font-size:20px;max-width:62ch;color:#2b2b3a}
+  .hero-ctas{display:flex;gap:14px;margin-top:32px;flex-wrap:wrap}
+  .hero-meta{display:flex;gap:24px;margin-top:36px;font-size:14px;color:#3a3a4a;flex-wrap:wrap}
+  .hero-meta .dot{display:inline-block;width:8px;height:8px;background:var(--accent);border-radius:99px;margin-right:8px;vertical-align:middle}
+
+  /* Sections */
+  section{padding:88px 0;border-top:2px solid var(--ink)}
+  .kicker{font-size:13px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+  h2{font-size:clamp(30px,4vw,44px);font-weight:900;letter-spacing:-0.02em;line-height:1.1;margin:10px 0 18px;max-width:22ch}
+  .lead{max-width:62ch;color:#2b2b3a;font-size:18px}
+
+  /* Promise */
+  .promise{background:var(--ink);color:var(--paper)}
+  .promise .kicker{color:var(--lime)}
+  .promise h2{max-width:24ch}
+  .promise-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start;margin-top:40px}
+  .pain ul{list-style:none}
+  .pain li{padding:14px 0;border-bottom:1px dashed #3a3a4a;font-size:17px;display:flex;gap:12px}
+  .pain li::before{content:"";flex:0 0 8px;height:8px;background:var(--accent);border-radius:99px;margin-top:10px}
+  .panel{background:var(--paper);color:var(--ink);border-radius:18px;padding:28px;border:2px solid var(--paper);box-shadow:8px 8px 0 var(--accent)}
+  .panel h3{font-size:22px;font-weight:900;margin-bottom:10px}
+  .panel p{color:#2b2b3a}
+  .panel .stat{display:flex;gap:14px;margin-top:16px}
+  .stat-box{flex:1;background:var(--paper-2);border:2px solid var(--ink);border-radius:12px;padding:14px}
+  .stat-box b{display:block;font-size:24px;font-weight:900}
+  .stat-box span{font-size:13px;color:#2b2b3a}
+
+  /* Steps */
+  .steps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:36px}
+  .step{background:var(--paper);border:2px solid var(--ink);border-radius:16px;padding:22px;position:relative;box-shadow:4px 4px 0 var(--ink)}
+  .step .num{font-size:13px;font-weight:900;letter-spacing:.18em;color:var(--accent)}
+  .step h3{font-size:18px;font-weight:900;margin:8px 0 10px}
+  .step p{font-size:15px;color:#2b2b3a}
+
+  /* Deliverables */
+  .deliverables{background:linear-gradient(180deg,var(--paper),var(--paper-2))}
+  .deliv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:36px}
+  .card{background:var(--paper);border:2px solid var(--ink);border-radius:16px;padding:24px;box-shadow:4px 4px 0 var(--ink)}
+  .card h3{font-size:18px;font-weight:900;margin-bottom:8px}
+  .card p{color:#2b2b3a;font-size:15px}
+  .ico{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-2));margin-bottom:14px;border:2px solid var(--ink);box-shadow:2px 2px 0 var(--ink)}
+
+  /* Pricing */
+  .pricing{background:var(--ink);color:var(--paper)}
+  .pricing .kicker{color:var(--lime)}
+  .price-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:36px}
+  .price{background:#11111d;border:2px solid #2a2a3e;border-radius:18px;padding:24px;display:flex;flex-direction:column;gap:10px}
+  .price.feat{background:var(--paper);color:var(--ink);border-color:var(--paper);box-shadow:8px 8px 0 var(--accent)}
+  .price .tag{font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--accent-2)}
+  .price.feat .tag{color:var(--accent)}
+  .price h3{font-size:20px;font-weight:900}
+  .price .amount{font-size:36px;font-weight:900;letter-spacing:-0.02em}
+  .price .amount span{font-size:14px;font-weight:600;color:#9c9cb0}
+  .price.feat .amount span{color:#5a5a6e}
+  .price ul{list-style:none;font-size:14px;color:#cfcfdc}
+  .price.feat ul{color:#2b2b3a}
+  .price li{padding:6px 0;border-bottom:1px dashed #2a2a3e}
+  .price.feat li{border-color:#dcd0bf}
+  .price .btn{margin-top:auto}
+
+  /* Testimonials */
+  .tg{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:36px}
+  .quote{background:var(--paper);border:2px solid var(--ink);border-radius:16px;padding:24px;box-shadow:4px 4px 0 var(--lime)}
+  .quote .pillow{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;background:var(--paper-2);border:1.5px solid var(--ink);padding:4px 8px;border-radius:99px;margin-bottom:14px}
+  .quote p{font-size:16px;color:var(--ink);margin-bottom:18px}
+  .who{display:flex;align-items:center;gap:12px}
+  .av{width:36px;height:36px;border-radius:99px;background:linear-gradient(135deg,var(--accent),var(--accent-2));border:2px solid var(--ink)}
+  .who b{display:block;font-size:14px;font-weight:800}
+  .who span{font-size:13px;color:#5a5a6e}
+
+  /* FAQ */
+  details{border:2px solid var(--ink);border-radius:14px;background:var(--paper);padding:18px 20px;margin-top:14px;box-shadow:3px 3px 0 var(--ink)}
+  details summary{cursor:pointer;font-weight:800;font-size:17px;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:18px}
+  details summary::-webkit-details-marker{display:none}
+  details summary::after{content:"+";font-size:24px;font-weight:900;color:var(--accent)}
+  details[open] summary::after{content:"-"}
+  details p{margin-top:12px;color:#2b2b3a}
+
+  /* Final CTA */
+  .final{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:var(--ink);text-align:center}
+  .final h2{margin:0 auto 14px;color:var(--ink)}
+  .final .lead{margin:0 auto 24px;color:#1a1a2e}
+
+  /* Footer */
+  footer{padding:36px 0;border-top:2px solid var(--ink);font-size:13px;color:#3a3a4a}
+  .foot-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px}
+
+  @media (max-width:880px){
+    .nav-links a:not(.btn){display:none}
+    .promise-grid{grid-template-columns:1fr}
+    .steps-grid{grid-template-columns:1fr 1fr}
+    .deliv-grid{grid-template-columns:1fr}
+    .price-grid{grid-template-columns:1fr 1fr}
+    .tg{grid-template-columns:1fr}
+    h1.title{font-size:44px}
+  }
+  @media (max-width:520px){
+    .steps-grid,.price-grid{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<header class="nav">
+  <div class="wrap nav-row">
+    <a class="brand" href="#"><span class="brand-mark"></span>Sprint90</a>
+    <nav class="nav-links">
+      <a href="#how">How it works</a>
+      <a href="#deliverables">What you get</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+      <a class="btn" href="#cta">Book intro call</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <span class="eyebrow">For junior PMs ready to level up</span>
+      <h1 class="title">Land your senior PM offer in <span class="swoop">90 days</span>.</h1>
+      <p class="lede">Sprint90 is a four-week 1:1 coaching package built around one transformation, one role, and one price. Four weekly calls, a private Loom feedback loop, and a Notion workbook that walks you from current title to signed offer letter.</p>
+      <div class="hero-ctas">
+        <a class="btn lg" href="#cta">Book the $97 intro call</a>
+        <a class="btn alt lg" href="#how">See the 4-week sprint</a>
+      </div>
+      <div class="hero-meta">
+        <span><span class="dot"></span>$97 intro credited toward your sprint</span>
+        <span><span class="dot"></span>Four weekly 1:1 calls</span>
+        <span><span class="dot"></span>Private Loom feedback loop</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="promise">
+    <div class="wrap">
+      <span class="kicker">The Promise</span>
+      <h2>Generic career coaching is noise. Sprint90 is a single before-and-after.</h2>
+      <p class="lead">One ICP, one outcome, one price. You don't get frameworks for everyone — you get the exact playbook for your jump, run with you four weeks in a row.</p>
+      <div class="promise-grid">
+        <div class="pain">
+          <ul>
+            <li>You've been "almost senior" for two review cycles in a row.</li>
+            <li>Your resume reads like a feature list, not a portfolio of outcomes.</li>
+            <li>Recruiters reach out, but the offers stall at the same band.</li>
+            <li>Mock interviews don't feel like the real thing — and you can tell.</li>
+            <li>You don't have a coach who's actually shipped at the level you want.</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>By day 90, you have a signed offer.</h3>
+          <p>We narrow your story to one transformation, rebuild your artifacts around it, and run live reps until interviews feel routine.</p>
+          <div class="stat">
+            <div class="stat-box"><b>4 wks</b><span>weekly 1:1 calls</span></div>
+            <div class="stat-box"><b>1</b><span>focused outcome</span></div>
+            <div class="stat-box"><b>&infin;</b><span>async Loom loop</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="how">
+    <div class="wrap">
+      <span class="kicker">How it works</span>
+      <h2>A tight four-week sprint, then we measure.</h2>
+      <p class="lead">No 12-week meandering programs. Four weeks, four calls, four shipped artifacts. Then you're armed for the offer cycle.</p>
+      <div class="steps-grid">
+        <div class="step">
+          <div class="num">WEEK 01</div>
+          <h3>Pick the exact jump</h3>
+          <p>We narrow your ICP recruiter and write the one-line promise that anchors every artifact for the rest of the sprint.</p>
+        </div>
+        <div class="step">
+          <div class="num">WEEK 02</div>
+          <h3>Rebuild the artifacts</h3>
+          <p>Resume, LinkedIn, and a portfolio doc rewritten as outcomes — with Loom feedback inside 24 hours.</p>
+        </div>
+        <div class="step">
+          <div class="num">WEEK 03</div>
+          <h3>Run live reps</h3>
+          <p>Mock interviews against the actual loops at your target companies, scored and replayed on Loom.</p>
+        </div>
+        <div class="step">
+          <div class="num">WEEK 04</div>
+          <h3>Close the offer</h3>
+          <p>Negotiation scripts, levelling tactics, and a written game plan for the final round and offer call.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="deliverables" class="deliverables">
+    <div class="wrap">
+      <span class="kicker">What you get</span>
+      <h2>Every sprint ships the same five things.</h2>
+      <p class="lead">No mystery curriculum. You know exactly what's in the box before you pay.</p>
+      <div class="deliv-grid">
+        <div class="card"><div class="ico"></div><h3>Four 1:1 calls</h3><p>One 60-minute working session per week, recorded and indexed in your private workspace.</p></div>
+        <div class="card"><div class="ico"></div><h3>Private Loom loop</h3><p>Send a Loom whenever you're stuck. Get a Loom back within one business day, every weekday.</p></div>
+        <div class="card"><div class="ico"></div><h3>The Notion workbook</h3><p>Your living sprint dashboard: artifacts, mock-interview scores, and offer-cycle tracker, all in one tab.</p></div>
+        <div class="card"><div class="ico"></div><h3>Artifact rewrites</h3><p>Resume, LinkedIn, and portfolio doc rewritten with you, line by line, in week two.</p></div>
+        <div class="card"><div class="ico"></div><h3>Mock interview library</h3><p>Recorded mock loops scored on a public rubric, so you can actually see the curve flatten.</p></div>
+        <div class="card"><div class="ico"></div><h3>Offer playbook</h3><p>A written script for the negotiation call plus a levelling brief for your target company.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="pricing" class="pricing">
+    <div class="wrap">
+      <span class="kicker">Pricing</span>
+      <h2>One sprint. One flat price. No upsells.</h2>
+      <p class="lead" style="color:#cfcfdc">Start with a paid triage call. If we're not a fit, you walk with a written plan and we both move on.</p>
+      <div class="price-grid">
+        <div class="price">
+          <span class="tag">Triage</span>
+          <h3>Intro Call</h3>
+          <div class="amount">$97<span> / 60 min</span></div>
+          <ul>
+            <li>Diagnostic of your current jump</li>
+            <li>Written one-page plan</li>
+            <li>Credited toward Sprint90</li>
+            <li>No further obligation</li>
+          </ul>
+          <a class="btn" href="#cta">Book intro</a>
+        </div>
+        <div class="price feat">
+          <span class="tag">Flagship</span>
+          <h3>Sprint90</h3>
+          <div class="amount">$1,500<span> flat, four weeks</span></div>
+          <ul>
+            <li>Four weekly 1:1 calls</li>
+            <li>Private Loom loop</li>
+            <li>Notion workbook</li>
+            <li>Mock interview library</li>
+          </ul>
+          <a class="btn" href="#cta">Start a sprint</a>
+        </div>
+        <div class="price">
+          <span class="tag">After sprint</span>
+          <h3>Continuation</h3>
+          <div class="amount">$750<span> / month</span></div>
+          <ul>
+            <li>Two calls per month</li>
+            <li>Async Loom loop</li>
+            <li>Workbook stays live</li>
+            <li>Cancel any month</li>
+          </ul>
+          <a class="btn" href="#cta">Continue with me</a>
+        </div>
+        <div class="price">
+          <span class="tag">Group</span>
+          <h3>Cohort</h3>
+          <div class="amount">$600<span> / seat, 8 max</span></div>
+          <ul>
+            <li>Four group sessions</li>
+            <li>Shared workbook</li>
+            <li>Peer mock interviews</li>
+            <li>Opens after 5 sprints sold</li>
+          </ul>
+          <a class="btn" href="#cta">Join waitlist</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <span class="kicker">Social proof</span>
+      <h2>What past sprinters say.</h2>
+      <p class="lead">Real testimonials slot here once the first three pilot sprints close.</p>
+      <div class="tg">
+        <div class="quote">
+          <span class="pillow">Placeholder testimonial</span>
+          <p>"Four weeks, four calls, one signed offer at the band I'd been chasing for a year. The mock loop is the part nobody else does."</p>
+          <div class="who"><div class="av"></div><div><b>Pilot Sprinter A</b><span>Senior PM, Series C SaaS</span></div></div>
+        </div>
+        <div class="quote">
+          <span class="pillow">Placeholder testimonial</span>
+          <p>"I finally stopped writing my resume like a feature list. Week two alone was worth the price of the sprint."</p>
+          <div class="who"><div class="av"></div><div><b>Pilot Sprinter B</b><span>Group PM, fintech</span></div></div>
+        </div>
+        <div class="quote">
+          <span class="pillow">Placeholder testimonial</span>
+          <p>"The Loom loop is unfair. Same-day feedback on a real interview question changed how I prepped overnight."</p>
+          <div class="who"><div class="av"></div><div><b>Pilot Sprinter C</b><span>Senior PM, marketplace</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="wrap">
+      <span class="kicker">FAQ</span>
+      <h2>Common questions.</h2>
+      <details><summary>What if my niche is too broad and the sprint doesn't fit?</summary><p>The intro call exists to filter exactly that. If your jump is more general than the sprint promise, we'll narrow it on the call or refer you out. The $97 is credited toward the sprint only if we proceed.</p></details>
+      <details><summary>Do you guarantee an offer?</summary><p>No coach honestly can. What I guarantee is the artifacts, the call cadence, and the Loom loop. Most sprinters who do the work have a written offer in hand within 90 days of starting.</p></details>
+      <details><summary>What happens if I miss a week?</summary><p>The Loom loop keeps moving even when calls slip. We reschedule the live call inside the same week or roll it into the next, no penalty.</p></details>
+      <details><summary>I'm not a junior PM. Will this still work for me?</summary><p>The sprint format generalizes, but I only run sprints for transformations I've personally lived. If you're outside that band, the intro call is the cheapest way to find out — and you'll leave with a plan either way.</p></details>
+      <details><summary>How is this different from a generic career coach?</summary><p>One ICP, one outcome, one price. Generic coaches sell a flexible container. Sprint90 sells a single before-and-after, which is why it works in four weeks instead of six months.</p></details>
+      <details><summary>What about after the sprint ends?</summary><p>You can keep the momentum on a $750/mo continuation retainer (two calls + async) or graduate. Most sprinters take a 30-day break and then come back for a second arc.</p></details>
+    </div>
+  </section>
+
+  <section id="cta" class="final">
+    <div class="wrap">
+      <h2>Pick your jump. Run the sprint. Land the offer.</h2>
+      <p class="lead">Book a paid intro this week and we'll have your one-page plan written before Friday.</p>
+      <a class="btn lg alt" href="#">Book the $97 intro call</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot-row">
+    <div>Sprint90 &middot; A focused four-week coaching sprint for one role and one outcome.</div>
+    <div>&copy; 2026 Sprint90. All rights reserved.</div>
+  </div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>AuditFlow - The $499 AI Automation Audit for service SMBs</title>
+<style>
+  :root {
+    --bg: #f4f6fb;
+    --surface: #ffffff;
+    --ink: #0b1736;
+    --ink-2: #2c3a5b;
+    --muted: #5b6a8a;
+    --line: #e3e8f1;
+    --line-2: #cdd5e3;
+    --brand: #1d4ed8;
+    --brand-2: #1e3a8a;
+    --brand-3: #0ea5e9;
+    --accent: #14b8a6;
+    --warn: #f59e0b;
+    --shadow: 0 10px 30px rgba(11,23,54,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); color: var(--ink); font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "SF Pro Text", Roboto, sans-serif; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 28px; }
+
+  /* Nav */
+  header.nav { background: rgba(255,255,255,0.85); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 30; }
+  .nav-row { display: flex; align-items: center; justify-content: space-between; height: 72px; }
+  .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 19px; letter-spacing: -0.01em; }
+  .brand-mark { width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(135deg, var(--brand), var(--brand-3)); display: grid; place-items: center; color: #fff; font-weight: 900; font-size: 14px; box-shadow: var(--shadow); }
+  .nav-links { display: flex; gap: 32px; align-items: center; font-size: 15px; color: var(--ink-2); }
+  .nav-links a:hover { color: var(--brand); }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 15px; padding: 12px 22px; border-radius: 10px; border: 1px solid transparent; cursor: pointer; transition: all 0.15s ease; }
+  .btn-primary { background: var(--ink); color: #fff; }
+  .btn-primary:hover { background: var(--brand); }
+  .btn-outline { background: var(--surface); color: var(--ink); border-color: var(--line-2); }
+  .btn-outline:hover { border-color: var(--ink); }
+  .btn-lg { padding: 16px 28px; font-size: 16px; }
+
+  /* Hero */
+  .hero { padding: 88px 0 96px; position: relative; overflow: hidden; }
+  .hero-grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 64px; align-items: center; }
+  .badge { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--brand-2); background: #e0e9ff; border: 1px solid #c8d6ff; padding: 6px 12px; border-radius: 999px; }
+  .badge .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px rgba(20,184,166,0.18); }
+  h1.title { font-size: clamp(38px, 5vw, 60px); line-height: 1.05; letter-spacing: -0.025em; font-weight: 800; margin: 18px 0 20px; }
+  h1 .grad { background: linear-gradient(120deg, var(--brand), var(--brand-3)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .lede { font-size: 19px; color: var(--ink-2); max-width: 60ch; margin-bottom: 32px; }
+  .hero-ctas { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 28px; }
+  .trust { display: flex; gap: 28px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+  .trust span::before { content: "\2713  "; color: var(--accent); font-weight: 800; margin-right: 4px; }
+
+  /* Hero panel - workflow card */
+  .panel-card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); padding: 24px; }
+  .panel-card .head { display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px; border-bottom: 1px solid var(--line); margin-bottom: 16px; }
+  .panel-card .head h4 { font-size: 14px; font-weight: 700; }
+  .tag-chip { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: #e6fffa; color: #0f766e; letter-spacing: 0.04em; text-transform: uppercase; }
+  .flow-row { display: grid; grid-template-columns: 1.5fr auto 1fr auto 1.2fr; gap: 10px; align-items: center; padding: 12px 0; }
+  .flow-cell { background: #f7faff; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-size: 13px; font-weight: 600; }
+  .flow-cell.ok { background: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
+  .flow-arrow { width: 18px; height: 2px; background: var(--line-2); position: relative; }
+  .flow-arrow::after { content: ""; position: absolute; right: -1px; top: -3px; border: 4px solid transparent; border-left-color: var(--line-2); }
+  .roi { margin-top: 18px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .roi .box { background: #f7faff; border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+  .roi .box b { display: block; font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
+  .roi .box span { font-size: 12px; color: var(--muted); }
+
+  /* Sections */
+  section { padding: 96px 0; }
+  .kicker { font-size: 13px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--brand); }
+  h2 { font-size: clamp(30px, 3.6vw, 42px); font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; margin: 12px 0 18px; max-width: 22ch; }
+  .lead { color: var(--ink-2); font-size: 18px; max-width: 62ch; }
+
+  /* Problem/Promise */
+  .problem { background: var(--surface); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .pp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 44px; }
+  .pp-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 30px; }
+  .pp-card.dark { background: var(--ink); color: #e8edf7; border-color: var(--ink); }
+  .pp-card h3 { font-size: 21px; font-weight: 800; margin-bottom: 14px; letter-spacing: -0.01em; }
+  .pp-card.dark h3 { color: #fff; }
+  .pp-list { list-style: none; }
+  .pp-list li { padding: 10px 0 10px 28px; position: relative; font-size: 16px; color: var(--ink-2); border-bottom: 1px solid var(--line); }
+  .pp-card.dark .pp-list li { color: #c8d2e8; border-color: rgba(255,255,255,0.08); }
+  .pp-list li:last-child { border-bottom: none; }
+  .pp-list li::before { content: ""; position: absolute; left: 0; top: 16px; width: 14px; height: 14px; border-radius: 4px; background: #fee2e2; border: 1px solid #fca5a5; }
+  .pp-card.promise .pp-list li::before { background: #d1fae5; border-color: #6ee7b7; }
+
+  /* How it works - timeline */
+  .timeline { margin-top: 52px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; position: relative; }
+  .timeline::before { content: ""; position: absolute; top: 32px; left: 5%; right: 5%; height: 2px; background: linear-gradient(90deg, var(--brand-3), var(--brand)); z-index: 0; }
+  .tl-step { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 22px; position: relative; z-index: 1; }
+  .tl-num { width: 36px; height: 36px; border-radius: 50%; background: var(--ink); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 14px; margin-bottom: 14px; box-shadow: 0 0 0 6px var(--bg); }
+  .tl-step h4 { font-size: 16px; font-weight: 800; margin-bottom: 6px; }
+  .tl-step p { color: var(--muted); font-size: 14px; }
+  .tl-day { font-size: 12px; font-weight: 700; color: var(--brand); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px; }
+
+  /* Deliverables */
+  .deliverables { background: var(--surface); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .deliv-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 44px; }
+  .deliv-card { padding: 26px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+  .deliv-icon { width: 44px; height: 44px; border-radius: 10px; background: linear-gradient(135deg, #e0e9ff, #d0fdf7); display: grid; place-items: center; margin-bottom: 16px; color: var(--brand); }
+  .deliv-card h4 { font-size: 18px; font-weight: 800; margin-bottom: 8px; }
+  .deliv-card p { color: var(--muted); font-size: 15px; }
+
+  /* Pricing */
+  .pricing { background: linear-gradient(180deg, var(--bg), #eef2f9); }
+  .price-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: 44px; }
+  .price { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 28px; display: flex; flex-direction: column; gap: 12px; }
+  .price.feat { background: var(--ink); color: #fff; border-color: var(--ink); position: relative; box-shadow: 0 24px 48px rgba(11,23,54,0.18); }
+  .price.feat::before { content: "Most converts to build"; position: absolute; top: -10px; right: 18px; background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .price h4 { font-size: 14px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+  .price.feat h4 { color: #9bb1d8; }
+  .price .amt { font-size: 38px; font-weight: 800; letter-spacing: -0.025em; line-height: 1; }
+  .price .amt span { font-size: 14px; color: var(--muted); font-weight: 500; margin-left: 4px; }
+  .price.feat .amt span { color: #9bb1d8; }
+  .price ul { list-style: none; font-size: 14px; color: var(--ink-2); }
+  .price.feat ul { color: #c8d2e8; }
+  .price li { padding: 8px 0; border-bottom: 1px solid var(--line); display: flex; gap: 8px; }
+  .price.feat li { border-color: rgba(255,255,255,0.08); }
+  .price li::before { content: "\2713"; color: var(--accent); font-weight: 800; }
+  .price .cta { margin-top: auto; padding-top: 8px; }
+
+  /* Testimonials */
+  .tcards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 44px; }
+  .tcard { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 26px; }
+  .ph-tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 10px; border-radius: 6px; background: #fef3c7; color: #92400e; margin-bottom: 16px; }
+  .tcard blockquote { font-size: 16px; line-height: 1.55; color: var(--ink); margin-bottom: 18px; }
+  .tperson { display: flex; align-items: center; gap: 12px; }
+  .tav { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--brand), var(--brand-3)); }
+  .tperson b { display: block; font-weight: 700; font-size: 14px; }
+  .tperson span { color: var(--muted); font-size: 13px; }
+
+  /* FAQ */
+  details { border: 1px solid var(--line); border-radius: 12px; padding: 18px 22px; background: var(--surface); margin-top: 12px; }
+  details summary { cursor: pointer; font-weight: 700; font-size: 17px; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 18px; }
+  details summary::-webkit-details-marker { display: none; }
+  details summary::after { content: "+"; font-size: 22px; color: var(--brand); font-weight: 700; }
+  details[open] summary::after { content: "-"; }
+  details p { margin-top: 12px; color: var(--ink-2); font-size: 16px; }
+  .faq-list { margin-top: 40px; max-width: 860px; }
+
+  /* Final CTA */
+  .final { background: linear-gradient(135deg, var(--ink), #1a2a55); color: #fff; text-align: center; border-radius: 28px; padding: 80px 32px; margin: 96px auto; max-width: 1180px; position: relative; overflow: hidden; }
+  .final::before { content: ""; position: absolute; top: -120px; right: -120px; width: 360px; height: 360px; border-radius: 50%; background: radial-gradient(closest-side, rgba(14,165,233,0.4), transparent); }
+  .final h2 { color: #fff; max-width: 22ch; margin: 0 auto 14px; }
+  .final p { color: #c8d2e8; max-width: 56ch; margin: 0 auto 32px; font-size: 18px; }
+  .final .btn-primary { background: var(--accent); }
+  .final .btn-primary:hover { background: #0d9488; }
+
+  /* Footer */
+  footer { padding: 40px 0; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+  .foot-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+
+  @media (max-width: 920px) {
+    .nav-links a:not(.btn) { display: none; }
+    .hero-grid { grid-template-columns: 1fr; gap: 40px; }
+    .pp-grid, .deliv-grid, .price-grid, .tcards { grid-template-columns: 1fr; }
+    .timeline { grid-template-columns: 1fr 1fr; }
+    .timeline::before { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap nav-row">
+    <a class="brand" href="#"><span class="brand-mark">A</span>AuditFlow</a>
+    <nav class="nav-links">
+      <a href="#how">How it works</a>
+      <a href="#deliverables">Deliverables</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+      <a class="btn btn-primary" href="#cta">Book the audit</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <span class="badge"><span class="pulse"></span>Now booking - 5 audits per month</span>
+        <h1 class="title">A <span class="grad">$499 AI automation audit</span> built for service SMBs.</h1>
+        <p class="lede">Five business days. One 60-minute Loom walkthrough of your stack. A written 5-automation roadmap with ROI estimates per workflow. No vague consulting deck.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary btn-lg" href="#cta">Book a $499 audit</a>
+          <a class="btn btn-outline btn-lg" href="#how">See the deliverable</a>
+        </div>
+        <div class="trust">
+          <span>Flat fee, no scope creep</span>
+          <span>Delivered in 5 business days</span>
+          <span>For agencies, law firms, accounting practices</span>
+        </div>
+      </div>
+      <aside class="panel-card">
+        <div class="head">
+          <h4>Sample roadmap line item</h4>
+          <span class="tag-chip">ROI calculated</span>
+        </div>
+        <div class="flow-row">
+          <div class="flow-cell">Inbound lead form</div>
+          <div class="flow-arrow"></div>
+          <div class="flow-cell">Make + GPT-4</div>
+          <div class="flow-arrow"></div>
+          <div class="flow-cell ok">CRM + Slack alert</div>
+        </div>
+        <div class="flow-row">
+          <div class="flow-cell">Vendor invoices</div>
+          <div class="flow-arrow"></div>
+          <div class="flow-cell">n8n parser</div>
+          <div class="flow-arrow"></div>
+          <div class="flow-cell ok">Sheets + Xero</div>
+        </div>
+        <div class="flow-row">
+          <div class="flow-cell">Client call recordings</div>
+          <div class="flow-arrow"></div>
+          <div class="flow-cell">LLM summarizer</div>
+          <div class="flow-arrow"></div>
+          <div class="flow-cell ok">Notion brief + DM</div>
+        </div>
+        <div class="roi">
+          <div class="box"><b>11 hrs</b><span>saved / week</span></div>
+          <div class="box"><b>$3.4k</b><span>monthly value</span></div>
+          <div class="box"><b>5 days</b><span>to delivery</span></div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="problem">
+    <div class="wrap">
+      <span class="kicker">The problem</span>
+      <h2>Service teams are drowning in repetitive ops, but "AI consulting" is still a deck.</h2>
+      <p class="lead">Most agencies and professional-services firms know automation will save them hours every week. They don't need another two-hour discovery call - they need a concrete diagnosis and a price tag.</p>
+      <div class="pp-grid">
+        <div class="pp-card">
+          <h3>What "AI consulting" usually looks like</h3>
+          <ul class="pp-list">
+            <li>A four-week discovery phase before anything ships</li>
+            <li>A 30-page strategy deck nobody reads twice</li>
+            <li>Vague "AI transformation" pricing with hourly drift</li>
+            <li>Recommendations that ignore the tools you already pay for</li>
+          </ul>
+        </div>
+        <div class="pp-card promise dark">
+          <h3>What AuditFlow actually ships</h3>
+          <ul class="pp-list">
+            <li>Recorded 60-min Loom walkthrough of your real stack</li>
+            <li>Written 5-automation roadmap with ROI estimate per workflow</li>
+            <li>Flat $499. Delivered in 5 business days. No retainer required.</li>
+            <li>40% of audits convert to a $2,500 build. You decide if and when.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="how">
+    <div class="wrap">
+      <span class="kicker">How it works</span>
+      <h2>Five business days from kickoff to roadmap.</h2>
+      <p class="lead">A proven 5-step process. Same shape every audit, calibrated to your vertical and stack.</p>
+      <div class="timeline">
+        <div class="tl-step">
+          <div class="tl-num">1</div>
+          <div class="tl-day">Day 1</div>
+          <h4>Stack intake</h4>
+          <p>15-min form covering your tools, team size, and three most painful workflows.</p>
+        </div>
+        <div class="tl-step">
+          <div class="tl-num">2</div>
+          <div class="tl-day">Day 2</div>
+          <h4>Deep mapping</h4>
+          <p>I rebuild your real workflows in Make and n8n on a sandbox to find the leverage.</p>
+        </div>
+        <div class="tl-step">
+          <div class="tl-num">3</div>
+          <div class="tl-day">Day 3</div>
+          <h4>ROI scoring</h4>
+          <p>Every candidate automation gets a per-week hour estimate and a dollarized ROI.</p>
+        </div>
+        <div class="tl-step">
+          <div class="tl-num">4</div>
+          <div class="tl-day">Day 4</div>
+          <h4>Loom walkthrough</h4>
+          <p>60-minute recorded walkthrough of your 5 prioritized automations and gotchas.</p>
+        </div>
+        <div class="tl-step">
+          <div class="tl-num">5</div>
+          <div class="tl-day">Day 5</div>
+          <h4>Roadmap and SOW</h4>
+          <p>One-page written roadmap plus an optional fixed-fee SOW for any build you want next.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="deliverables" class="deliverables">
+    <div class="wrap">
+      <span class="kicker">What you get</span>
+      <h2>The audit ships the same six artifacts every time.</h2>
+      <p class="lead">No mystery scope. You know exactly what's in the box before you wire the $499.</p>
+      <div class="deliv-grid">
+        <div class="deliv-card">
+          <div class="deliv-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg></div>
+          <h4>60-min Loom walkthrough</h4>
+          <p>Recorded screen-share through your prioritized workflows, with the exact tools and triggers called out.</p>
+        </div>
+        <div class="deliv-card">
+          <div class="deliv-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg></div>
+          <h4>5-automation roadmap</h4>
+          <p>One-page document listing the five automations to build first, ordered by ROI and effort.</p>
+        </div>
+        <div class="deliv-card">
+          <div class="deliv-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l3 3 6-6"/><path d="M14 6h7M14 12h7M14 18h7"/></svg></div>
+          <h4>ROI estimate per workflow</h4>
+          <p>Hours saved per week and dollarized monthly value, with the math shown so you can sanity-check it.</p>
+        </div>
+        <div class="deliv-card">
+          <div class="deliv-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+          <h4>Tooling shortlist</h4>
+          <p>Make vs n8n vs Zapier verdict for your stack, plus a self-hosting plan if you want vendor independence.</p>
+        </div>
+        <div class="deliv-card">
+          <div class="deliv-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M4 9h16M9 4v16"/></svg></div>
+          <h4>Risk and drift register</h4>
+          <p>Every recommendation flagged for vendor risk, model risk, and a fallback plan if pricing changes.</p>
+        </div>
+        <div class="deliv-card">
+          <div class="deliv-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg></div>
+          <h4>Optional fixed-fee SOW</h4>
+          <p>A pre-priced statement of work for any of the five automations - $2,500 each, no negotiation needed.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="pricing" class="pricing">
+    <div class="wrap">
+      <span class="kicker">Pricing</span>
+      <h2>Flat fees. Concrete deliverables. No retainer required.</h2>
+      <p class="lead">Start with a $499 audit. If you want builds, the SOW is pre-priced. If you want ongoing partnership, the retainer tiers are clear.</p>
+      <div class="price-grid">
+        <div class="price">
+          <h4>Foot-in-door</h4>
+          <div class="amt">$499<span> flat</span></div>
+          <p style="color: var(--muted); font-size: 14px;">The Audit. Delivered in 5 business days.</p>
+          <ul>
+            <li>60-min Loom walkthrough</li>
+            <li>5-automation roadmap</li>
+            <li>ROI estimate per workflow</li>
+            <li>Tooling and risk register</li>
+          </ul>
+          <div class="cta"><a class="btn btn-outline" href="#cta">Book the audit</a></div>
+        </div>
+        <div class="price feat">
+          <h4>Per build</h4>
+          <div class="amt">$2,500<span> per automation</span></div>
+          <p style="color: #9bb1d8; font-size: 14px;">Single Build. Pre-priced from your roadmap.</p>
+          <ul>
+            <li>One automation built end-to-end</li>
+            <li>Make or n8n implementation</li>
+            <li>30-day bug warranty</li>
+            <li>Documented handoff Loom</li>
+          </ul>
+          <div class="cta"><a class="btn btn-primary" style="background: var(--accent);" href="#cta">Start a build</a></div>
+        </div>
+        <div class="price">
+          <h4>Retainer</h4>
+          <div class="amt">$1,500<span> / month</span></div>
+          <p style="color: var(--muted); font-size: 14px;">Growth tier. For teams iterating monthly.</p>
+          <ul>
+            <li>Up to 4 build hours / mo</li>
+            <li>Maintenance for live flows</li>
+            <li>Async Slack channel</li>
+            <li>Monthly review call</li>
+          </ul>
+          <div class="cta"><a class="btn btn-outline" href="#cta">Talk retainer</a></div>
+        </div>
+        <div class="price">
+          <h4>Retainer</h4>
+          <div class="amt">$3,500<span> / month</span></div>
+          <p style="color: var(--muted); font-size: 14px;">Scale tier. For ops-heavy teams.</p>
+          <ul>
+            <li>Weekly office hours</li>
+            <li>Unlimited small fixes</li>
+            <li>Priority Slack response</li>
+            <li>Quarterly stack review</li>
+          </ul>
+          <div class="cta"><a class="btn btn-outline" href="#cta">Talk retainer</a></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <span class="kicker">What clients say</span>
+      <h2>Receipts from the first audits.</h2>
+      <p class="lead">Real testimonials slot here as the first cohort of audits closes.</p>
+      <div class="tcards">
+        <div class="tcard">
+          <span class="ph-tag">Placeholder testimonial</span>
+          <blockquote>"Lorem ipsum: AuditFlow shipped a written roadmap with real ROI numbers in five days. Two of the five builds paid for the audit in week one."</blockquote>
+          <div class="tperson"><div class="tav"></div><div><b>Director of Ops</b><span>Marketing agency, 22 employees</span></div></div>
+        </div>
+        <div class="tcard">
+          <span class="ph-tag">Placeholder testimonial</span>
+          <blockquote>"Lorem ipsum dolor: most consultants want a discovery call. AuditFlow shipped a Loom walkthrough by Friday and a fixed-fee SOW for the build I wanted next."</blockquote>
+          <div class="tperson"><div class="tav"></div><div><b>Managing Partner</b><span>Boutique law firm, 14 staff</span></div></div>
+        </div>
+        <div class="tcard">
+          <span class="ph-tag">Placeholder testimonial</span>
+          <blockquote>"Lorem ipsum sit amet. The ROI math was sober and the SOW prices were honest. We are now on the $1,500/mo retainer."</blockquote>
+          <div class="tperson"><div class="tav"></div><div><b>Founder</b><span>Real estate team, 8 agents</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="wrap">
+      <span class="kicker">FAQ</span>
+      <h2>Honest answers before you wire $499.</h2>
+      <div class="faq-list">
+        <details>
+          <summary>Will the $499 audit actually fit my business if I'm not a marketing agency?</summary>
+          <p>The audit format generalizes across agencies, law firms, real-estate teams, and accounting practices. The throughline is service-based SMBs with 5-50 employees doing $500k-$5M ARR. If your model is different (e-commerce, SaaS, manufacturing) we'll say so on the intake form before you pay.</p>
+        </details>
+        <details>
+          <summary>What stops scope from creeping past the audit?</summary>
+          <p>The deliverable is hard-capped at 5 days, 5 recommendations, and a one-page roadmap. Anything beyond that is a separate Build SOW at $2,500 per automation. You see that price before the audit ships, so there is no surprise quote.</p>
+        </details>
+        <details>
+          <summary>What if Make or OpenAI changes pricing or breaks a workflow?</summary>
+          <p>Every recommendation in the roadmap carries a vendor risk flag and a fallback plan. We default to n8n self-hosted as a vendor-independent option whenever possible. Retainer clients get drift maintenance baked in.</p>
+        </details>
+        <details>
+          <summary>How is this different from hiring an Upwork freelancer for a few hundred dollars?</summary>
+          <p>Two things: vertical depth and timezone responsiveness. The audit is shaped by case studies in your specific niche, and replies happen in business hours of your timezone. If lowest price is your only criterion, Upwork is fine - just expect to manage scope yourself.</p>
+        </details>
+        <details>
+          <summary>Do I have to commit to a build after the audit?</summary>
+          <p>No. About 40% of audits convert to a build, ~20% to a retainer, the rest take the roadmap and run it themselves. You own everything in the deliverable, full stop.</p>
+        </details>
+        <details>
+          <summary>How do I start?</summary>
+          <p>Click any "Book the audit" button, fill out the 15-min intake form, and pay $499 via Stripe. Day 1 starts the next business day after the form is submitted.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section id="cta" style="padding: 0;">
+    <div class="wrap">
+      <div class="final">
+        <h2>Stop guessing where AI fits in your business.</h2>
+        <p>Five business days from now, you can have a written roadmap with ROI math and a pre-priced SOW. The hardest part is sending the form.</p>
+        <a class="btn btn-primary btn-lg" href="#">Book the $499 audit</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot-row">
+    <div>AuditFlow - Productized AI automation audits for service SMBs.</div>
+    <div>Concept demo. Not a live offer.</div>
+  </div>
+</footer>
+
+</body>
+</html>
