@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Round 2 Concepts - DubDeck, ShelfProof, LoopCrate</title>
+<style>
+  :root {
+    --bg: #f4f3ee;
+    --bg-2: #ffffff;
+    --ink: #111111;
+    --ink-soft: #404040;
+    --ink-mute: #6b6b6b;
+    --line: #d8d6cf;
+    --accent: #e1370b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+  .serif { font-family: ui-serif, Georgia, "Iowan Old Style", "Apple Garamond", serif; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+
+  /* MASTHEAD */
+  .masthead {
+    border-bottom: 2px solid var(--ink);
+    padding: 22px 32px;
+    background: var(--bg);
+  }
+  .masthead-inner {
+    max-width: 1280px; margin: 0 auto;
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 32px; flex-wrap: wrap;
+  }
+  .mh-left {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+  .mh-title {
+    font-family: ui-serif, Georgia, serif;
+    font-size: 28px; font-weight: 700; letter-spacing: -0.02em;
+  }
+  .mh-title .accent { color: var(--accent); }
+  .mh-right {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+
+  /* HEADER BAND */
+  .band {
+    padding: 80px 32px 60px;
+    border-bottom: 1px solid var(--line);
+  }
+  .band-inner {
+    max-width: 1280px; margin: 0 auto;
+    display: grid; grid-template-columns: 1.4fr 1fr; gap: 60px;
+    align-items: end;
+  }
+  .issue-no {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--accent); font-weight: 700;
+    margin-bottom: 20px;
+    display: inline-flex; align-items: center; gap: 14px;
+  }
+  .issue-no::before {
+    content: ""; width: 32px; height: 1px; background: var(--accent);
+  }
+  h1 {
+    font-family: ui-serif, Georgia, serif;
+    font-size: clamp(48px, 6vw, 88px);
+    line-height: 0.96; letter-spacing: -0.025em;
+    font-weight: 600;
+    margin-bottom: 28px;
+  }
+  h1 .italic { font-style: italic; color: var(--accent); }
+  .lede {
+    font-size: 18px; color: var(--ink-soft);
+    max-width: 540px; line-height: 1.55;
+  }
+  .index-table {
+    border: 1px solid var(--ink);
+    background: var(--bg-2);
+  }
+  .index-table-head {
+    padding: 16px 22px;
+    background: var(--ink); color: var(--bg);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .index-row {
+    padding: 14px 22px;
+    border-top: 1px solid var(--line);
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 14px;
+  }
+  .index-row:first-child { border-top: none; }
+  .index-name { font-weight: 700; }
+  .index-score {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    color: var(--ink-mute); font-size: 13px;
+  }
+
+  /* CARD GRID */
+  .gallery {
+    padding: 80px 32px 100px;
+  }
+  .gallery-inner {
+    max-width: 1280px; margin: 0 auto;
+  }
+  .gallery-eyebrow {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--ink-mute); font-weight: 700;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--ink);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px;
+    margin-top: 36px;
+  }
+
+  .card {
+    background: var(--bg-2);
+    border: 1px solid var(--ink);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+  }
+
+  /* Card preview - each unique to brand */
+  .preview {
+    aspect-ratio: 4/3;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid var(--ink);
+  }
+
+  /* DubDeck preview */
+  .preview.dubdeck {
+    background:
+      radial-gradient(ellipse at 70% 30%, rgba(255,45,111,0.4), transparent 50%),
+      linear-gradient(135deg, #1a0d22, #08090c);
+  }
+  .preview.dubdeck .lang-row {
+    position: absolute; top: 22px; left: 22px;
+    display: flex; gap: 6px;
+  }
+  .preview.dubdeck .chip {
+    padding: 4px 10px; font-size: 10px; font-weight: 700;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.18);
+    color: white;
+    backdrop-filter: blur(8px);
+  }
+  .preview.dubdeck .chip.on { background: #ff2d6f; border-color: #ff2d6f; }
+  .preview.dubdeck .play {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 64px; height: 64px; border-radius: 50%;
+    background: rgba(255,255,255,0.95);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 28px rgba(255,255,255,0.25);
+  }
+  .preview.dubdeck .play::before {
+    content: ""; width: 0; height: 0;
+    border-left: 18px solid #08090c;
+    border-top: 11px solid transparent;
+    border-bottom: 11px solid transparent;
+    margin-left: 5px;
+  }
+  .preview.dubdeck .timeline {
+    position: absolute; bottom: 18px; left: 22px; right: 22px;
+    height: 3px; background: rgba(255,255,255,0.2);
+  }
+  .preview.dubdeck .timeline::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 38%; background: #ff2d6f;
+  }
+
+  /* ShelfProof preview */
+  .preview.shelfproof {
+    background: #ebe4d6;
+    padding: 20px;
+  }
+  .preview.shelfproof .live {
+    position: absolute; top: 16px; left: 16px;
+    padding: 5px 11px; background: #c45a3a; color: white;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sans-serif;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+    border-radius: 3px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .preview.shelfproof .live::before {
+    content: ""; width: 6px; height: 6px; background: white; border-radius: 50%;
+    animation: blink 1.4s ease-in-out infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .preview.shelfproof .shelf-line {
+    position: absolute; left: 0; right: 0;
+    height: 4px; background: #4a463f;
+  }
+  .preview.shelfproof .shelf-line.s1 { top: 38%; }
+  .preview.shelfproof .shelf-line.s2 { top: 72%; }
+  .preview.shelfproof .item {
+    position: absolute;
+    border: 1px solid #d9cfba;
+  }
+  .preview.shelfproof .it-1 {
+    bottom: 30%; left: 12%;
+    width: 36px; height: 60px; border-radius: 4px;
+    background: linear-gradient(180deg, #5a6b3a 0%, #5a6b3a 22%, #c2b285 22%, #c2b285 100%);
+  }
+  .preview.shelfproof .it-2 {
+    bottom: 30%; left: 32%;
+    width: 70px; height: 46px; border-radius: 0 0 50px 50px;
+    background: #c45a3a;
+  }
+  .preview.shelfproof .it-3 {
+    bottom: 30%; right: 26%;
+    width: 26px; height: 70px; border-radius: 4px 4px 2px 2px;
+    background: linear-gradient(180deg, #4a463f 0%, #4a463f 18%, #ddd1bc 18%, #ddd1bc 100%);
+  }
+  .preview.shelfproof .it-4 {
+    bottom: 30%; right: 8%;
+    width: 32px; height: 54px; border-radius: 3px;
+    background: #b3463b;
+  }
+  .preview.shelfproof .it-5 {
+    bottom: 4%; left: 14%;
+    width: 80px; height: 56px; border-radius: 4px;
+    background: linear-gradient(135deg, #b88c5a, #8a6438);
+  }
+  .preview.shelfproof .it-6 {
+    bottom: 4%; right: 14%;
+    width: 64px; height: 50px; border-radius: 50% 50% 8px 8px;
+    background: linear-gradient(180deg, #2d2d2b, #1a1a18);
+  }
+
+  /* LoopCrate preview */
+  .preview.loopcrate {
+    background:
+      radial-gradient(circle at 70% 30%, rgba(255,43,214,0.4), transparent 55%),
+      radial-gradient(circle at 30% 80%, rgba(54,230,255,0.3), transparent 55%),
+      linear-gradient(180deg, #0e0e22, #050610);
+  }
+  .preview.loopcrate::before {
+    content: ""; position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(54,230,255,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(54,230,255,0.06) 1px, transparent 1px);
+    background-size: 36px 36px;
+  }
+  .preview.loopcrate .pack-tag {
+    position: absolute; top: 20px; left: 20px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: #36e6ff;
+  }
+  .preview.loopcrate .pack-bpm {
+    position: absolute; top: 20px; right: 20px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: rgba(232,236,255,0.6);
+  }
+  .preview.loopcrate .pack-name {
+    position: absolute; bottom: 70px; left: 20px;
+    font-size: 28px; line-height: 0.95; font-weight: 800;
+    letter-spacing: -0.02em;
+    color: white;
+  }
+  .preview.loopcrate .pack-name .accent { color: #ff2bd6; }
+  .preview.loopcrate .eq {
+    position: absolute; bottom: 20px; left: 20px; right: 20px;
+    height: 36px;
+    display: flex; align-items: flex-end; gap: 3px;
+  }
+  .preview.loopcrate .eq span {
+    flex: 1;
+    background: linear-gradient(180deg, #36e6ff, #ff2bd6);
+    border-radius: 1px;
+    animation: eq 1.2s ease-in-out infinite;
+    transform-origin: bottom;
+  }
+  .preview.loopcrate .eq span:nth-child(1) { height: 30%; animation-delay: 0s; }
+  .preview.loopcrate .eq span:nth-child(2) { height: 70%; animation-delay: 0.1s; }
+  .preview.loopcrate .eq span:nth-child(3) { height: 50%; animation-delay: 0.2s; }
+  .preview.loopcrate .eq span:nth-child(4) { height: 90%; animation-delay: 0.3s; }
+  .preview.loopcrate .eq span:nth-child(5) { height: 40%; animation-delay: 0.4s; }
+  .preview.loopcrate .eq span:nth-child(6) { height: 80%; animation-delay: 0.5s; }
+  .preview.loopcrate .eq span:nth-child(7) { height: 55%; animation-delay: 0.6s; }
+  .preview.loopcrate .eq span:nth-child(8) { height: 85%; animation-delay: 0.7s; }
+  .preview.loopcrate .eq span:nth-child(9) { height: 35%; animation-delay: 0.8s; }
+  .preview.loopcrate .eq span:nth-child(10) { height: 75%; animation-delay: 0.9s; }
+  .preview.loopcrate .eq span:nth-child(11) { height: 50%; animation-delay: 1.0s; }
+  .preview.loopcrate .eq span:nth-child(12) { height: 65%; animation-delay: 1.1s; }
+  @keyframes eq {
+    0%, 100% { transform: scaleY(0.5); }
+    50% { transform: scaleY(1); }
+  }
+
+  .card-body {
+    padding: 28px 28px 26px;
+    flex: 1;
+    display: flex; flex-direction: column;
+  }
+  .card-meta {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 14px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+  .card-rank { color: var(--accent); font-weight: 700; }
+  .score-pill {
+    padding: 3px 9px;
+    background: var(--ink); color: var(--bg);
+    border-radius: 3px;
+    font-weight: 700;
+  }
+  .card-name {
+    font-family: ui-serif, Georgia, serif;
+    font-size: 32px; line-height: 1.05; letter-spacing: -0.02em;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .card-desc {
+    font-size: 15px; color: var(--ink-soft);
+    line-height: 1.5;
+    margin-bottom: 22px;
+    flex: 1;
+  }
+  .card-tags {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    margin-bottom: 22px;
+  }
+  .tag {
+    padding: 3px 10px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-size: 11px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    letter-spacing: 0.04em;
+    color: var(--ink-mute);
+  }
+  .card-cta {
+    display: inline-flex; align-items: center; gap: 8px;
+    align-self: flex-start;
+    padding: 10px 18px;
+    background: var(--ink); color: var(--bg);
+    border-radius: 999px;
+    font-size: 13px; font-weight: 600;
+  }
+  .card-cta::after { content: " ->"; font-family: ui-monospace, monospace; }
+  .card-cta:hover { background: var(--accent); }
+
+  /* CRITERIA */
+  .criteria {
+    padding: 60px 32px 80px;
+    background: var(--ink);
+    color: var(--bg);
+  }
+  .criteria-inner {
+    max-width: 1280px; margin: 0 auto;
+  }
+  .criteria-eyebrow {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--accent); font-weight: 700;
+    margin-bottom: 16px;
+  }
+  .criteria h2 {
+    font-family: ui-serif, Georgia, serif;
+    font-size: clamp(28px, 3vw, 42px);
+    line-height: 1.1; letter-spacing: -0.02em; font-weight: 600;
+    max-width: 900px;
+    margin-bottom: 36px;
+  }
+  .criteria h2 .italic { font-style: italic; color: var(--accent); }
+  .criteria-grid {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .crit-cell {
+    background: var(--ink);
+    padding: 22px 20px;
+  }
+  .crit-num {
+    font-family: ui-serif, Georgia, serif;
+    font-size: 36px; font-weight: 600; font-style: italic;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+  .crit-label {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sans-serif;
+    font-size: 13px; line-height: 1.4;
+    color: rgba(244,243,238,0.85);
+  }
+
+  /* FOOTER */
+  footer {
+    padding: 36px 32px;
+    border-top: 1px solid var(--line);
+    background: var(--bg);
+    color: var(--ink-mute);
+  }
+  .footer-inner {
+    max-width: 1280px; margin: 0 auto;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 16px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 960px) {
+    .band-inner { grid-template-columns: 1fr; gap: 40px; }
+    .grid { grid-template-columns: 1fr; }
+    .criteria-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 540px) {
+    .criteria-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="mh-left">Volume II / Concepts</div>
+    <div class="mh-title">The <span class="accent">Solo Earner</span> Quarterly</div>
+    <div class="mh-right">May 2026</div>
+  </div>
+</header>
+
+<section class="band">
+  <div class="band-inner">
+    <div>
+      <div class="issue-no">Issue Nº 02 / Round 2 winners</div>
+      <h1>Three new bets on <span class="italic">creator-economy income.</span></h1>
+      <p class="lede">From a YouTube localization retainer to a kitchen TikTok shop to a podcaster music catalog, this round's three winners aim at concrete, paying customers in 2026 - distinct from Round 1 and from each other.</p>
+    </div>
+    <aside class="index-table">
+      <div class="index-table-head">
+        <span>Quick index</span>
+        <span>Score</span>
+      </div>
+      <div class="index-row"><span class="index-name">DubDeck</span><span class="index-score">22 / 25</span></div>
+      <div class="index-row"><span class="index-name">ShelfProof</span><span class="index-score">22 / 25</span></div>
+      <div class="index-row"><span class="index-name">LoopCrate</span><span class="index-score">21 / 25</span></div>
+    </aside>
+  </div>
+</section>
+
+<section class="gallery">
+  <div class="gallery-inner">
+    <div class="gallery-eyebrow">
+      <span>The concepts // 03 of 13 ranked</span>
+      <span>Tap a card to read the landing page</span>
+    </div>
+    <div class="grid">
+
+      <!-- DubDeck -->
+      <a href="dubdeck/index.html" class="card">
+        <div class="preview dubdeck">
+          <div class="lang-row">
+            <span class="chip">EN</span>
+            <span class="chip on">ES</span>
+            <span class="chip">PT</span>
+            <span class="chip">HI</span>
+          </div>
+          <div class="play"></div>
+          <div class="timeline"></div>
+        </div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-rank">Rank 01 / Tied</span>
+            <span class="score-pill">22 / 25</span>
+          </div>
+          <div class="card-name">DubDeck</div>
+          <p class="card-desc">A done-for-you YouTube channel localization retainer that ships your back-catalog into Spanish, Portuguese, and Hindi - with a human pacing pass YouTube's auto-dub never does.</p>
+          <div class="card-tags">
+            <span class="tag">Service</span>
+            <span class="tag">Creator economy</span>
+            <span class="tag">$1,200/mo retainer</span>
+          </div>
+          <span class="card-cta">Open landing page</span>
+        </div>
+      </a>
+
+      <!-- ShelfProof -->
+      <a href="shelfproof/index.html" class="card">
+        <div class="preview shelfproof">
+          <div class="live">Live</div>
+          <div class="shelf-line s1"></div>
+          <div class="shelf-line s2"></div>
+          <div class="item it-1"></div>
+          <div class="item it-2"></div>
+          <div class="item it-3"></div>
+          <div class="item it-4"></div>
+          <div class="item it-5"></div>
+          <div class="item it-6"></div>
+        </div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-rank">Rank 01 / Tied</span>
+            <span class="score-pill">22 / 25</span>
+          </div>
+          <div class="card-name">ShelfProof</div>
+          <p class="card-desc">A one-host, one-vertical TikTok Shop studio for clean-ingredient kitchen tools. Every gadget on the live actually cooked dinner this week - and brands pay 2-3x baseline for the trust.</p>
+          <div class="card-tags">
+            <span class="tag">Live commerce</span>
+            <span class="tag">Single-vertical</span>
+            <span class="tag">$1,500 / featured live</span>
+          </div>
+          <span class="card-cta">Open landing page</span>
+        </div>
+      </a>
+
+      <!-- LoopCrate -->
+      <a href="loopcrate/index.html" class="card">
+        <div class="preview loopcrate">
+          <div class="pack-tag">// Pack 01 / True-Crime</div>
+          <div class="pack-bpm">92 BPM // A-min</div>
+          <div class="pack-name">Cold <span class="accent">Open.</span></div>
+          <div class="eq">
+            <span></span><span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-rank">Rank 03</span>
+            <span class="score-pill">21 / 25</span>
+          </div>
+          <div class="card-name">LoopCrate</div>
+          <p class="card-desc">Show-format AI music packs for podcasters. Eight matched tracks - cold open, mid-roll, outro, beds - all in one tempo and key, royalty-free, $39 a pack.</p>
+          <div class="card-tags">
+            <span class="tag">Digital IP</span>
+            <span class="tag">Podcasters</span>
+            <span class="tag">$39 / $89 / $149yr</span>
+          </div>
+          <span class="card-cta">Open landing page</span>
+        </div>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<section class="criteria">
+  <div class="criteria-inner">
+    <div class="criteria-eyebrow">// Scoring rubric</div>
+    <h2>All thirteen ideas were scored on five criteria, <span class="italic">1 to 5 each.</span></h2>
+    <div class="criteria-grid">
+      <div class="crit-cell">
+        <div class="crit-num">i.</div>
+        <div class="crit-label">Speed to first dollar</div>
+      </div>
+      <div class="crit-cell">
+        <div class="crit-num">ii.</div>
+        <div class="crit-label">Low startup cost</div>
+      </div>
+      <div class="crit-cell">
+        <div class="crit-num">iii.</div>
+        <div class="crit-label">Income ceiling</div>
+      </div>
+      <div class="crit-cell">
+        <div class="crit-num">iv.</div>
+        <div class="crit-label">Differentiation in 2026</div>
+      </div>
+      <div class="crit-cell">
+        <div class="crit-num">v.</div>
+        <div class="crit-label">Solo-founder feasibility</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-inner">
+    <div>The Solo Earner Quarterly // Volume II</div>
+    <div>Round 2 / 13 ideas considered / 3 advanced</div>
+  </div>
+</footer>
+
+</body>
+</html>
