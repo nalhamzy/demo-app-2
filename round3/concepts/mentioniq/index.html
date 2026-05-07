@@ -1,0 +1,563 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>MentionIQ - Track how AI answers see your brand</title>
+<meta name="description" content="Daily fanout of buyer-intent prompts across ChatGPT, Claude, Gemini, and Perplexity. Track mentions, sentiment, citations, and where your competitors win." />
+<style>
+  :root{
+    --bg:#faf8f5;
+    --paper:#ffffff;
+    --ink:#0e0c12;
+    --ink-2:#322c3c;
+    --ink-mute:#6c6478;
+    --line:#e8e3da;
+    --line-2:#d6cebf;
+    --grad:linear-gradient(135deg,#7c3aed 0%,#ec4899 60%,#f97316 100%);
+    --grad-soft:linear-gradient(135deg,#f3e8ff 0%,#fce7f3 60%,#fed7aa 100%);
+    --purple:#7c3aed;
+    --purple-2:#5b21b6;
+    --pink:#ec4899;
+    --orange:#f97316;
+    --green:#0e9f6e;
+    --red:#dc2626;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  body{overflow-x:hidden}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1200px;margin:0 auto;padding:0 28px}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.01em}
+
+  /* nav */
+  nav.top{background:rgba(250,248,245,.78);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:50}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:-.015em;font-size:16px}
+  .brand-mark{width:28px;height:28px;border-radius:8px;background:var(--grad);position:relative;display:grid;place-items:center;color:#fff;font-weight:800;font-size:12.5px;letter-spacing:.02em}
+  .nav-links{display:flex;gap:26px;font-size:14px;color:var(--ink-2)}
+  .nav-links a:hover{color:var(--purple)}
+  .nav-cta{display:flex;gap:10px}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:9px;font-weight:600;font-size:13.5px;border:1px solid transparent;cursor:pointer;transition:all .15s}
+  .btn-ghost{color:var(--ink);border-color:var(--line-2)}
+  .btn-ghost:hover{border-color:var(--purple);color:var(--purple)}
+  .btn-primary{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .btn-primary:hover{background:#1f1a26}
+  .btn-grad{background:var(--grad);color:#fff;border:none}
+  .btn-grad:hover{filter:brightness(1.06)}
+  .btn-lg{padding:13px 18px;font-size:14.5px}
+
+  /* hero */
+  header.hero{padding:72px 0 24px;position:relative}
+  .pill{display:inline-flex;align-items:center;gap:8px;padding:5px 12px;border-radius:999px;background:var(--grad-soft);border:1px solid #ead0f5;color:var(--purple-2);font-size:12.5px;font-weight:600;letter-spacing:.01em}
+  .caps{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-mute);font-weight:600}
+  h1.title{font-size:66px;line-height:1.02;letter-spacing:-.04em;margin:18px 0 16px;font-weight:700;max-width:920px}
+  h1.title em{font-style:normal;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lede{font-size:18.5px;color:var(--ink-2);max-width:660px;margin:0 0 28px}
+  .hero-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .audit-input{display:flex;align-items:center;gap:0;border:1.5px solid var(--ink);border-radius:12px;padding:5px;background:#fff;max-width:520px;margin-top:24px}
+  .audit-input input{flex:1;border:none;background:transparent;outline:none;font:inherit;padding:8px 14px;font-size:15px}
+  .audit-input button{background:var(--ink);color:#fff;border:none;padding:10px 18px;border-radius:8px;font-weight:600;font-size:14px;cursor:pointer}
+  .audit-input small{display:block;color:var(--ink-mute);font-size:12.5px;margin-top:8px}
+  .free-note{margin-top:8px;font-size:13px;color:var(--ink-mute)}
+
+  /* hero mockup */
+  .stage{margin-top:54px;display:grid;grid-template-columns:1.45fr 1fr;gap:18px;align-items:start;position:relative}
+  .stage::before{content:"";position:absolute;inset:-30px -60px;border-radius:32px;background:var(--grad-soft);opacity:.55;z-index:-1;filter:blur(40px)}
+
+  /* answer card */
+  .answer{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px 24px;box-shadow:0 30px 80px -40px rgba(124,58,237,.30),0 1px 0 rgba(255,255,255,.6) inset}
+  .ans-head{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:14px}
+  .ans-source{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink-2);font-weight:600}
+  .src-mark{width:22px;height:22px;border-radius:6px;background:#10a37f;color:#fff;display:grid;place-items:center;font-size:10px;font-weight:800;letter-spacing:.04em}
+  .src-mark.gpt{background:#10a37f}
+  .src-mark.claude{background:#cc785c}
+  .src-mark.perp{background:#1f6feb}
+  .src-mark.gem{background:linear-gradient(135deg,#4285f4,#9b72cb)}
+  .ans-meta{font-size:11.5px;color:var(--ink-mute)}
+  .ans-q{font-size:13px;color:var(--ink-mute);margin-bottom:10px}
+  .ans-q b{color:var(--ink-2);font-weight:600}
+  .ans-body{font-size:15.5px;line-height:1.6;color:var(--ink)}
+  .ans-body mark{background:linear-gradient(180deg,transparent 60%,#fce7f3 60%);padding:0 2px;color:var(--ink);font-weight:600}
+  .ans-body mark.you{background:linear-gradient(180deg,transparent 60%,#ddd6fe 60%);color:var(--purple-2)}
+  .citations{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)}
+  .cite{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;font-size:12px;background:var(--paper);border:1px solid var(--line);color:var(--ink-2);font-weight:500}
+  .cite .num{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10.5px;color:var(--ink-mute)}
+  .cite.you{border-color:var(--purple);background:#f5f3ff;color:var(--purple-2);font-weight:600}
+
+  /* prompts list */
+  .prompts{margin-top:14px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:6px}
+  .pcell{display:grid;grid-template-columns:auto 1fr auto auto;gap:14px;padding:12px 14px;align-items:center;font-size:13px;border-bottom:1px solid var(--line)}
+  .pcell:last-child{border-bottom:none}
+  .pcell .q{color:var(--ink-2)}
+  .pcell .v{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;color:var(--ink-mute)}
+  .chip{font-size:11px;padding:3px 8px;border-radius:6px;font-weight:600;letter-spacing:.02em}
+  .chip.you{background:#ede9fe;color:var(--purple-2)}
+  .chip.no{background:#fff1f2;color:var(--red)}
+  .chip.pos{background:#dcfce7;color:var(--green)}
+
+  /* leaderboard */
+  .board{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 30px 80px -40px rgba(236,72,153,.25)}
+  .board h4{margin:0 0 4px;font-size:14px;font-weight:700;letter-spacing:-.01em}
+  .board .h-sub{color:var(--ink-mute);font-size:12.5px;margin-bottom:14px}
+  .lb{display:grid;gap:10px}
+  .lb-row{display:grid;grid-template-columns:24px 1fr 64px 80px;gap:12px;align-items:center;font-size:13.5px;padding:8px 0;border-bottom:1px dashed var(--line)}
+  .lb-row:last-child{border-bottom:none}
+  .rank{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:var(--ink-mute);font-weight:700}
+  .lb-name{font-weight:600;display:flex;align-items:center;gap:8px}
+  .swatch{width:10px;height:10px;border-radius:3px}
+  .lb-row.you{background:linear-gradient(90deg,#f5f3ff,transparent);border-radius:8px;padding:8px 10px;border-bottom:1px dashed var(--line)}
+  .lb-row.you .lb-name{color:var(--purple-2)}
+  .bar{height:6px;background:#f3e8ff;border-radius:999px;overflow:hidden}
+  .bar i{display:block;height:100%;background:var(--grad);border-radius:999px}
+  .lb-pct{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;color:var(--ink-2);text-align:right;font-weight:600}
+  .delta{font-size:11.5px;font-weight:700;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .delta.up{color:var(--green)}
+  .delta.dn{color:var(--red)}
+
+  .source-mix{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+  .source-mix h5{margin:0 0 10px;font-size:11.5px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.1em;font-weight:700}
+  .src-row{display:grid;grid-template-columns:80px 1fr 50px;gap:10px;align-items:center;font-size:12.5px;margin-bottom:7px}
+  .src-row .l{font-weight:600;color:var(--ink-2)}
+  .src-row .bar{height:5px}
+  .src-row .v{text-align:right;font-family:ui-monospace,monospace;color:var(--ink-mute);font-size:11.5px}
+
+  /* sections */
+  section{padding:96px 0;border-top:1px solid var(--line)}
+  .eyebrow{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;color:var(--purple);font-weight:700;letter-spacing:.18em;text-transform:uppercase}
+  h2{font-size:42px;line-height:1.08;letter-spacing:-.03em;margin:8px 0 14px;font-weight:700;max-width:780px}
+  h2 em{font-style:normal;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--ink-2);max-width:680px;font-size:16.5px}
+
+  /* problem / promise */
+  .why{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:36px}
+  .why-card{padding:28px;border:1px solid var(--line);border-radius:16px;background:#fff}
+  .why-card .num-big{font-size:64px;font-weight:700;letter-spacing:-.04em;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1}
+  .why-card p{margin-top:10px;color:var(--ink-2);font-size:15px}
+
+  /* steps */
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:36px;counter-reset:step}
+  .step{padding:22px;border:1px solid var(--line);border-radius:14px;background:#fff;position:relative}
+  .step::before{counter-increment:step;content:counter(step,decimal-leading-zero);position:absolute;top:-12px;left:18px;background:var(--ink);color:#fff;font-size:11px;padding:3px 9px;border-radius:6px;font-family:ui-monospace,monospace;letter-spacing:.1em}
+  .step h3{font-size:17px;margin:8px 0 6px;letter-spacing:-.01em}
+  .step p{margin:0;color:var(--ink-2);font-size:14px}
+
+  /* features */
+  .features{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:36px}
+  .feature{padding:24px;border:1px solid var(--line);border-radius:16px;background:#fff;position:relative;overflow:hidden}
+  .feature::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--grad);opacity:.7}
+  .feature .ico{width:32px;height:32px;border-radius:8px;background:var(--grad-soft);color:var(--purple-2);display:grid;place-items:center;margin-bottom:14px}
+  .feature h3{font-size:17px;margin:0 0 6px}
+  .feature p{margin:0;color:var(--ink-2);font-size:14px}
+
+  /* pricing */
+  .prices{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:36px}
+  .price{padding:30px;border:1px solid var(--line);border-radius:20px;background:#fff;display:flex;flex-direction:column;position:relative}
+  .price.pop{border:none;background:linear-gradient(180deg,#fff,#fff) padding-box, var(--grad) border-box;border:2px solid transparent;box-shadow:0 30px 60px -30px rgba(124,58,237,.35)}
+  .price .name{font-size:13px;color:var(--ink-mute);letter-spacing:.08em;text-transform:uppercase;font-weight:700}
+  .price .amt-line{display:flex;align-items:baseline;gap:6px;margin-top:8px}
+  .price .amt-big{font-size:46px;font-weight:700;letter-spacing:-.025em}
+  .price .amt-suf{color:var(--ink-mute);font-size:14px}
+  .price .who{font-size:13.5px;color:var(--ink-mute);margin-top:4px}
+  .price ul{list-style:none;margin:18px 0 22px;padding:0;display:grid;gap:9px;font-size:14px;color:var(--ink-2)}
+  .price li::before{content:"\2192";color:var(--purple);margin-right:10px;font-weight:700}
+  .price .cta{margin-top:auto}
+  .price .ribbon{position:absolute;top:-14px;right:20px;background:var(--grad);color:#fff;font-size:11px;padding:4px 12px;border-radius:999px;font-weight:700;letter-spacing:.06em}
+
+  /* logos */
+  .logos{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-top:32px}
+  .logo{aspect-ratio:5/2;border:1px solid var(--line);border-radius:12px;display:grid;place-items:center;color:var(--ink-2);font-weight:700;font-size:13.5px;letter-spacing:.04em;background:#fff}
+
+  /* testimonials */
+  .quotes{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:36px}
+  .tcard{padding:24px;border:1px solid var(--line);border-radius:16px;background:#fff;position:relative}
+  .tcard::before{content:"\201C";position:absolute;top:12px;right:18px;font-size:60px;line-height:1;color:var(--line);font-family:Georgia,serif}
+  .tcard p{margin:0 0 16px;font-size:15px;color:var(--ink-2);line-height:1.55;position:relative}
+  .who{display:flex;align-items:center;gap:10px}
+  .av{width:30px;height:30px;border-radius:50%;background:var(--grad-soft);display:grid;place-items:center;font-size:11px;font-weight:700;color:var(--purple-2)}
+  .who .meta{font-size:12.5px}
+  .who .meta b{display:block}
+  .who .meta span{color:var(--ink-mute)}
+
+  /* faq */
+  .faq{display:grid;gap:10px;margin-top:32px}
+  details{border:1px solid var(--line);border-radius:14px;background:#fff;padding:18px 22px}
+  summary{cursor:pointer;font-weight:600;font-size:15.5px;list-style:none;display:flex;justify-content:space-between;align-items:center}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"+";color:var(--purple);font-size:22px;font-weight:300}
+  details[open] summary::after{content:"–"}
+  details p{margin:12px 0 0;color:var(--ink-2);font-size:14.5px}
+
+  /* final */
+  .final{margin:24px 0;padding:64px 36px;border-radius:24px;background:var(--ink);color:#fff;text-align:center;position:relative;overflow:hidden}
+  .final::before{content:"";position:absolute;inset:-1px;background:radial-gradient(700px 320px at 50% 100%,rgba(124,58,237,.45),transparent 70%);pointer-events:none}
+  .final::after{content:"";position:absolute;inset:0;background:radial-gradient(500px 220px at 80% 0%,rgba(236,72,153,.30),transparent 70%);pointer-events:none}
+  .final h2{color:#fff;margin-left:auto;margin-right:auto;position:relative}
+  .final p{color:rgba(255,255,255,.8);position:relative}
+  .final .actions{position:relative}
+
+  footer{padding:44px 0 60px;color:var(--ink-mute);font-size:13px;border-top:1px solid var(--line)}
+  .ft-cols{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:24px}
+  .ft-cols h5{color:var(--ink);font-size:13px;margin:0 0 12px;letter-spacing:.04em}
+  .ft-cols a{display:block;padding:5px 0;color:var(--ink-mute)}
+  .ft-cols a:hover{color:var(--purple)}
+  .ft-bottom{margin-top:32px;padding-top:18px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+
+  @media (max-width:880px){
+    h1.title{font-size:42px}
+    h2{font-size:30px}
+    .stage,.why,.steps,.features,.prices,.quotes,.logos,.ft-cols{grid-template-columns:1fr}
+    .pcell{grid-template-columns:1fr auto}
+    .pcell .v{display:none}
+    .nav-links{display:none}
+  }
+</style>
+</head>
+<body>
+
+<nav class="top"><div class="wrap nav-inner">
+  <a class="brand" href="#"><span class="brand-mark">M</span> MentionIQ</a>
+  <div class="nav-links">
+    <a href="#how">How it works</a>
+    <a href="#features">Features</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#faq">FAQ</a>
+    <a href="#">Index</a>
+  </div>
+  <div class="nav-cta">
+    <a class="btn btn-ghost" href="#">Sign in</a>
+    <a class="btn btn-primary" href="#audit">Run free audit</a>
+  </div>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <span class="caps">Answer Engine Optimization</span>
+  <h1 class="title">Find out how <em>ChatGPT, Claude, Gemini &amp; Perplexity</em> talk about your brand.</h1>
+  <p class="lede">MentionIQ runs your buyer-intent prompts across every major LLM every day, then tells you when you're cited, where you're invisible, and which competitor is eating your share of voice.</p>
+  <div class="audit-input" id="audit">
+    <input type="text" placeholder="yourcompany.com" value="" aria-label="Your domain"/>
+    <button class="mono">Run free audit &rarr;</button>
+  </div>
+  <div class="free-note">25 prompts, 4 LLMs, PDF in your inbox in 90 seconds. No card.</div>
+
+  <div class="stage">
+    <!-- LLM answer card mockup -->
+    <div>
+      <div class="answer">
+        <div class="ans-head">
+          <div class="ans-source"><span class="src-mark gpt">G</span> ChatGPT &middot; <span class="caps" style="font-size:10.5px">gpt-4 turbo</span></div>
+          <div class="ans-meta mono">Apr 30, 2026 &middot; 14:02</div>
+        </div>
+        <div class="ans-q">Prompt &middot; <b>"Best CRM for a 20-person B2B SaaS team that integrates with Slack and Linear?"</b></div>
+        <div class="ans-body">
+          For a 20-person B2B SaaS team prioritizing Slack and Linear integrations, the most-recommended options are <mark>Attio</mark>, <mark>Folk</mark>, and <mark class="you">Sandbar CRM</mark>. <mark>Attio</mark> is praised for its real-time data model, <mark>Folk</mark> for its lightweight UX, and <mark class="you">Sandbar</mark> for native Linear sync &mdash; though it's mentioned in only 38% of comparable prompts.
+        </div>
+        <div class="citations">
+          <span class="cite"><span class="num">1.</span> attio.com/changelog</span>
+          <span class="cite"><span class="num">2.</span> g2.com/categories/crm</span>
+          <span class="cite"><span class="num">3.</span> reddit.com/r/saas</span>
+          <span class="cite you"><span class="num">4.</span> sandbar.io/integrations &middot; you</span>
+          <span class="cite"><span class="num">5.</span> folk.app/blog</span>
+        </div>
+      </div>
+
+      <div class="prompts">
+        <div class="pcell">
+          <span class="chip pos">cited</span>
+          <div><div class="q">Best CRM for B2B SaaS under 50 employees</div><div class="v">gpt-4 &middot; claude-3.5 &middot; gemini-1.5</div></div>
+          <span class="chip you">rank 3</span>
+          <span class="mono" style="font-size:11.5px;color:var(--ink-mute)">38% SOV</span>
+        </div>
+        <div class="pcell">
+          <span class="chip no">missing</span>
+          <div><div class="q">CRM with native Linear integration</div><div class="v">perplexity &middot; gpt-4</div></div>
+          <span class="chip no">not cited</span>
+          <span class="mono" style="font-size:11.5px;color:var(--ink-mute)">0% SOV</span>
+        </div>
+        <div class="pcell">
+          <span class="chip pos">cited</span>
+          <div><div class="q">Attio vs Folk vs Pipedrive 2026</div><div class="v">claude-3.5 &middot; gemini-1.5</div></div>
+          <span class="chip you">rank 4</span>
+          <span class="mono" style="font-size:11.5px;color:var(--ink-mute)">22% SOV</span>
+        </div>
+        <div class="pcell">
+          <span class="chip pos">cited</span>
+          <div><div class="q">Cheapest CRM with custom objects</div><div class="v">gpt-4 &middot; perplexity</div></div>
+          <span class="chip you">rank 2</span>
+          <span class="mono" style="font-size:11.5px;color:var(--ink-mute)">61% SOV</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- leaderboard -->
+    <aside>
+      <div class="board">
+        <h4>Share of voice &middot; CRM category</h4>
+        <div class="h-sub">Across 250 buyer-intent prompts, last 7 days</div>
+        <div class="lb">
+          <div class="lb-row">
+            <div class="rank">01</div>
+            <div class="lb-name"><span class="swatch" style="background:#7c3aed"></span>Attio</div>
+            <div><div class="bar"><i style="width:74%"></i></div></div>
+            <div class="lb-pct">74% <span class="delta up">+3</span></div>
+          </div>
+          <div class="lb-row">
+            <div class="rank">02</div>
+            <div class="lb-name"><span class="swatch" style="background:#ec4899"></span>Folk</div>
+            <div><div class="bar"><i style="width:51%"></i></div></div>
+            <div class="lb-pct">51% <span class="delta up">+8</span></div>
+          </div>
+          <div class="lb-row you">
+            <div class="rank">03</div>
+            <div class="lb-name"><span class="swatch" style="background:linear-gradient(135deg,#7c3aed,#ec4899)"></span>Sandbar &middot; you</div>
+            <div><div class="bar"><i style="width:38%"></i></div></div>
+            <div class="lb-pct">38% <span class="delta dn">-4</span></div>
+          </div>
+          <div class="lb-row">
+            <div class="rank">04</div>
+            <div class="lb-name"><span class="swatch" style="background:#f97316"></span>Pipedrive</div>
+            <div><div class="bar"><i style="width:29%"></i></div></div>
+            <div class="lb-pct">29% <span class="delta dn">-2</span></div>
+          </div>
+          <div class="lb-row">
+            <div class="rank">05</div>
+            <div class="lb-name"><span class="swatch" style="background:#0e9f6e"></span>HubSpot</div>
+            <div><div class="bar"><i style="width:21%"></i></div></div>
+            <div class="lb-pct">21% <span class="delta up">+1</span></div>
+          </div>
+        </div>
+        <div class="source-mix">
+          <h5>Where you're cited</h5>
+          <div class="src-row"><div class="l"><span class="src-mark gpt" style="display:inline-grid;width:14px;height:14px;border-radius:3px;font-size:8px;vertical-align:middle;margin-right:5px">G</span>ChatGPT</div><div class="bar"><i style="width:42%"></i></div><div class="v">42%</div></div>
+          <div class="src-row"><div class="l"><span class="src-mark claude" style="display:inline-grid;width:14px;height:14px;border-radius:3px;font-size:8px;vertical-align:middle;margin-right:5px">C</span>Claude</div><div class="bar"><i style="width:36%"></i></div><div class="v">36%</div></div>
+          <div class="src-row"><div class="l"><span class="src-mark perp" style="display:inline-grid;width:14px;height:14px;border-radius:3px;font-size:8px;vertical-align:middle;margin-right:5px">P</span>Perplexity</div><div class="bar"><i style="width:48%"></i></div><div class="v">48%</div></div>
+          <div class="src-row"><div class="l"><span class="src-mark gem" style="display:inline-grid;width:14px;height:14px;border-radius:3px;font-size:8px;vertical-align:middle;margin-right:5px">G</span>Gemini</div><div class="bar"><i style="width:24%"></i></div><div class="v">24%</div></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div></header>
+
+<section id="problem"><div class="wrap">
+  <span class="eyebrow">The shift</span>
+  <h2>30% of B2B research <em>started</em> in an LLM in Q1 2026. Your SEO dashboard doesn't see any of it.</h2>
+  <p class="sub">Buyers ask ChatGPT before they Google. Perplexity is the new top-of-funnel. Your brand either gets cited in the answer, or your competitor does &mdash; and Google Search Console will never show you which.</p>
+  <div class="why">
+    <div class="why-card">
+      <div class="num-big">62%</div>
+      <p>of B2B SaaS buyers in 2026 reported using an LLM in the consideration phase, up from 18% in 2024 (Forrester / placeholder).</p>
+    </div>
+    <div class="why-card">
+      <div class="num-big">3.4x</div>
+      <p>average difference in citation share between the #1 and #4 brand in a category. Most leaders don't know they're #4.</p>
+    </div>
+  </div>
+</div></section>
+
+<section id="how"><div class="wrap">
+  <span class="eyebrow">How it works</span>
+  <h2>Daily fanout. Continuous tracking. Slack-shaped reports.</h2>
+  <div class="steps">
+    <div class="step">
+      <h3>Build your prompt set</h3>
+      <p>Start from our vertical library (CRM, MarTech, Dev Tools, FinTech, HR Tech) or upload your own. 50 to 1,000 buyer-intent prompts per brand.</p>
+    </div>
+    <div class="step">
+      <h3>We run them, every day</h3>
+      <p>ChatGPT, Claude, Gemini, Perplexity. Real API calls, fresh sessions, with rate-limit and retry handling. No scraping.</p>
+    </div>
+    <div class="step">
+      <h3>Mentions, citations, sentiment</h3>
+      <p>Time-series of brand mention rate, citation rank, sentiment score, and competitor diff. Filter by model, geography, prompt cluster.</p>
+    </div>
+    <div class="step">
+      <h3>Auto-briefs for the gaps</h3>
+      <p>Every prompt where you're invisible gets an AI-generated content brief: what page to write, what schema to ship, who's currently cited.</p>
+    </div>
+  </div>
+</div></section>
+
+<section id="features"><div class="wrap">
+  <span class="eyebrow">Capabilities</span>
+  <h2>Everything an SEO lead would want, retooled for the answer-engine era.</h2>
+  <div class="features">
+    <div class="feature">
+      <div class="ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg></div>
+      <h3>Multi-LLM fanout</h3>
+      <p>OpenAI, Anthropic, Google, Perplexity, plus ChatGPT Search and SearchGPT-specific tracking. Every model, every day.</p>
+    </div>
+    <div class="feature">
+      <div class="ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M3 3v18h18"/><path d="M7 13l4-4 4 4 5-5"/></svg></div>
+      <h3>Citation rank tracking</h3>
+      <p>Don't just know if you're mentioned &mdash; know if you're cite #1, #4, or unranked. Track changes daily with delta charts.</p>
+    </div>
+    <div class="feature">
+      <div class="ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M3 12h18M12 3v18"/></svg></div>
+      <h3>Competitor diff</h3>
+      <p>Pick three brands. See exactly which prompts they win, which you win, and what content explains the difference.</p>
+    </div>
+    <div class="feature">
+      <div class="ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M14 3v4a1 1 0 001 1h4M5 3h9l5 5v13a1 1 0 01-1 1H5a1 1 0 01-1-1V4a1 1 0 011-1z"/></svg></div>
+      <h3>Auto-generated content briefs</h3>
+      <p>For every prompt you don't show up for, an AI brief: target page, suggested H1s, schema spec, and who currently owns the answer.</p>
+    </div>
+    <div class="feature">
+      <div class="ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div>
+      <h3>Weekly Slack digest</h3>
+      <p>Every Monday, your share-of-voice change, top three movers, and the prompt where your competitor passed you. Zero meetings.</p>
+    </div>
+    <div class="feature">
+      <div class="ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 2L4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6z"/></svg></div>
+      <h3>Sentiment + hallucination flags</h3>
+      <p>If an LLM says something untrue about your brand, you're paged within 24 hours. With the offending model, prompt, and exact passage.</p>
+    </div>
+  </div>
+</div></section>
+
+<section id="pricing"><div class="wrap">
+  <span class="eyebrow">Pricing</span>
+  <h2>Priced under Profound. Built for the indie SEO lead.</h2>
+  <p class="sub">Every plan is billed monthly with no setup fee. The free brand audit (25 prompts, one-time) is available without an account.</p>
+  <div class="prices">
+    <div class="price">
+      <div class="name">Starter</div>
+      <div class="amt-line"><div class="amt-big">$99</div><div class="amt-suf">/mo</div></div>
+      <div class="who">Solo founder, one brand.</div>
+      <ul>
+        <li>50 prompts daily</li>
+        <li>3 tracked competitors</li>
+        <li>Weekly Slack digest</li>
+        <li>30-day history</li>
+        <li>All 4 LLMs</li>
+      </ul>
+      <a class="btn btn-ghost cta" href="#">Start on Starter</a>
+    </div>
+    <div class="price pop">
+      <div class="ribbon">Most popular</div>
+      <div class="name" style="color:var(--purple-2)">Growth</div>
+      <div class="amt-line"><div class="amt-big">$299</div><div class="amt-suf">/mo</div></div>
+      <div class="who">In-house SEO / content lead.</div>
+      <ul>
+        <li>250 prompts daily</li>
+        <li>Sentiment + hallucination flags</li>
+        <li>AI-generated content briefs</li>
+        <li>Slack &amp; webhook alerts</li>
+        <li>365-day history</li>
+        <li>10 competitors, 3 brands</li>
+      </ul>
+      <a class="btn btn-grad cta" href="#">Start on Growth</a>
+    </div>
+    <div class="price">
+      <div class="name">Agency</div>
+      <div class="amt-line"><div class="amt-big">$799</div><div class="amt-suf">/mo</div></div>
+      <div class="who">SEO shop, multi-brand.</div>
+      <ul>
+        <li>1,000 prompts daily</li>
+        <li>White-label dashboards</li>
+        <li>Multi-brand workspaces</li>
+        <li>Unlimited history</li>
+        <li>Priority support &amp; onboarding</li>
+      </ul>
+      <a class="btn btn-ghost cta" href="#">Talk to us</a>
+    </div>
+  </div>
+</div></section>
+
+<section id="trusted"><div class="wrap">
+  <span class="eyebrow">Trusted by</span>
+  <h2 style="font-size:24px;letter-spacing:-.015em">Marketing teams who refuse to be invisible to ChatGPT.</h2>
+  <div class="logos">
+    <div class="logo">SANDBAR</div>
+    <div class="logo">LEDGERLY</div>
+    <div class="logo">PROXIMA</div>
+    <div class="logo">FOLDR</div>
+    <div class="logo">UPSCRIBE</div>
+    <div class="logo">QUANTA</div>
+  </div>
+  <p style="color:var(--ink-mute);font-size:12px;margin-top:14px">Placeholder logos &middot; design preview only.</p>
+</div></section>
+
+<section id="testimonials"><div class="wrap">
+  <span class="eyebrow">From the field</span>
+  <h2>What in-house SEO leads are telling us.</h2>
+  <div class="quotes">
+    <div class="tcard">
+      <p>&ldquo;Our CMO asked, "how do we rank in ChatGPT?" three times last quarter and we had no answer. MentionIQ gave us a number, a chart, and a roadmap by Friday.&rdquo;</p>
+      <div class="who"><div class="av">JS</div><div class="meta"><b>Julia S.</b><span>Head of Content, Series B SaaS &middot; placeholder</span></div></div>
+    </div>
+    <div class="tcard">
+      <p>&ldquo;The auto-briefs are the killer feature. Every Monday I have a prioritized list of "write this page" with the exact prompt it would target.&rdquo;</p>
+      <div class="who"><div class="av">RT</div><div class="meta"><b>Ravi T.</b><span>SEO Lead, $30M ARR fintech &middot; placeholder</span></div></div>
+    </div>
+    <div class="tcard">
+      <p>&ldquo;We caught Perplexity citing an outdated competitor comparison about us. Filed a feedback ticket the same day, got it corrected the next week. Felt like having a publicist for the AI search era.&rdquo;</p>
+      <div class="who"><div class="av">MO</div><div class="meta"><b>Mei O.</b><span>VP Marketing &middot; placeholder</span></div></div>
+    </div>
+  </div>
+  <p style="color:var(--ink-mute);font-size:12px;margin-top:14px">Placeholder testimonials &middot; representative of pre-launch beta feedback.</p>
+</div></section>
+
+<section id="faq"><div class="wrap">
+  <span class="eyebrow">Common questions</span>
+  <h2>Things SEO and content leads ask before they sign up.</h2>
+  <div class="faq">
+    <details open><summary>How is this different from Profound or Otterly?</summary>
+      <p>Profound starts at $500/mo and targets enterprise. Otterly is closer in price but lacks competitor diff and content briefs. MentionIQ ships a vertical buyer-intent prompt library, AI-generated briefs, and white-label for agencies &mdash; all from $99.</p>
+    </details>
+    <details><summary>Do you really query the LLMs every day?</summary>
+      <p>Yes. We make actual API calls to OpenAI, Anthropic, Google, and Perplexity, in fresh sessions, with retry and rate-limit handling. We cache aggressively to keep costs predictable, but the answers you see are not synthetic.</p>
+    </details>
+    <details><summary>What is the free audit, exactly?</summary>
+      <p>Submit your domain. We auto-derive 25 buyer-intent prompts, run them against four LLMs, and email a PDF showing your share of voice, top three competitors, and the prompts where you're invisible. One-time, no card, no obligation.</p>
+    </details>
+    <details><summary>Can the LLMs really change what they say about my brand?</summary>
+      <p>Yes &mdash; mostly through what they retrieve at inference (Perplexity, ChatGPT Search) and what they trained on most recently. The content briefs target both: pages worth ranking organically and structured data the retrieval layer prefers.</p>
+    </details>
+    <details><summary>Will my data be used to train models?</summary>
+      <p>No. We use API tiers with training opt-out for every provider. Your prompts and tracked brands stay in your workspace.</p>
+    </details>
+    <details><summary>I run an agency. Is white-label real?</summary>
+      <p>Yes. The Agency plan gives you a custom subdomain, your logo, your color palette, and per-client logins. Bills come from us; reports look like yours.</p>
+    </details>
+  </div>
+</div></section>
+
+<div class="wrap">
+  <div class="final">
+    <span class="pill" style="background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.2)">Free 25-prompt audit</span>
+    <h2 style="margin-top:14px;font-size:46px">Don't optimize for the search engine you used to know.</h2>
+    <p class="sub" style="font-size:17px;color:rgba(255,255,255,.78);margin:0 auto">Ninety seconds. One PDF. The first honest snapshot of how AI talks about you.</p>
+    <div class="actions" style="margin-top:24px;display:flex;justify-content:center;gap:12px;flex-wrap:wrap">
+      <a class="btn btn-grad btn-lg" href="#audit">Run free audit</a>
+      <a class="btn btn-ghost btn-lg" href="#" style="color:#fff;border-color:rgba(255,255,255,.35)">See live demo</a>
+    </div>
+  </div>
+</div>
+
+<footer><div class="wrap">
+  <div class="ft-cols">
+    <div>
+      <div class="brand"><span class="brand-mark">M</span> MentionIQ</div>
+      <p style="margin-top:10px;max-width:300px">Track how ChatGPT, Claude, Gemini, and Perplexity answer questions about your brand. Built for the AI-search era.</p>
+    </div>
+    <div>
+      <h5>Product</h5>
+      <a href="#">Free audit</a><a href="#">Features</a><a href="#">Pricing</a><a href="#">Visibility Index</a>
+    </div>
+    <div>
+      <h5>Resources</h5>
+      <a href="#">AEO playbook</a><a href="#">Vertical prompt library</a><a href="#">Docs</a><a href="#">API</a>
+    </div>
+    <div>
+      <h5>Company</h5>
+      <a href="#">About</a><a href="#">Customers</a><a href="#">Affiliate</a><a href="#">Contact</a>
+    </div>
+  </div>
+  <div class="ft-bottom">
+    <span>&copy; 2026 MentionIQ, Inc. &middot; Concept page</span>
+    <span><a href="../index.html">&larr; Back to gallery</a></span>
+  </div>
+</div></footer>
+
+</body>
+</html>

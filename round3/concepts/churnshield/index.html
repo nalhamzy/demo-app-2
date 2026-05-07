@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ChurnShield - Stop involuntary churn on Stripe in one click</title>
+<meta name="description" content="Smart card retries, branded dunning, and AI-personalized save offers for Stripe Billing. One-click install, free under $1k MRR." />
+<style>
+  :root{
+    --bg:#f4f4ef;
+    --paper:#fbfaf6;
+    --ink:#0d1f1a;
+    --ink-2:#23332e;
+    --ink-mute:#5e6f6a;
+    --line:#dadcd2;
+    --line-2:#c5c8bd;
+    --emerald:#0c5b3f;
+    --emerald-2:#0a4831;
+    --emerald-soft:#e2f1ea;
+    --gold:#b48a3c;
+    --gold-2:#8e6a26;
+    --gold-soft:#f6ecd6;
+    --rose:#a44a4a;
+    --slate:#293535;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  body{overflow-x:hidden}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.01em}
+
+  /* nav */
+  nav.top{background:var(--paper);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:50}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:62px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:-.01em;font-size:16px}
+  .brand-mark{width:28px;height:28px;border-radius:7px;background:var(--emerald);color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px;position:relative;overflow:hidden}
+  .brand-mark::after{content:"";position:absolute;left:-25%;top:-25%;width:60%;height:160%;background:linear-gradient(135deg,var(--gold),transparent);transform:rotate(20deg);opacity:.45}
+  .nav-links{display:flex;gap:26px;font-size:14px;color:var(--ink-2)}
+  .nav-links a:hover{color:var(--emerald)}
+  .nav-cta{display:flex;gap:10px}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:8px;font-weight:600;font-size:13.5px;border:1px solid transparent;cursor:pointer;transition:all .15s}
+  .btn-ghost{color:var(--ink);border-color:var(--line-2);background:transparent}
+  .btn-ghost:hover{border-color:var(--emerald);color:var(--emerald)}
+  .btn-primary{background:var(--emerald);color:#fff;border-color:var(--emerald)}
+  .btn-primary:hover{background:var(--emerald-2)}
+  .btn-lg{padding:13px 18px;font-size:14.5px}
+
+  /* hero */
+  header.hero{padding:72px 0 24px;position:relative;background:
+    radial-gradient(900px 320px at 90% 0%,rgba(180,138,60,.10),transparent 60%),
+    radial-gradient(900px 380px at 0% 100%,rgba(12,91,63,.06),transparent 60%),
+    var(--bg)}
+  .pill{display:inline-flex;align-items:center;gap:8px;padding:5px 11px;border-radius:999px;background:var(--emerald-soft);border:1px solid #cfe2d8;color:var(--emerald);font-size:12.5px;font-weight:600;letter-spacing:.01em}
+  .pill .dot{width:6px;height:6px;border-radius:50%;background:var(--emerald)}
+  h1.title{font-size:62px;line-height:1.04;letter-spacing:-.035em;margin:18px 0 16px;font-weight:700;max-width:900px}
+  h1.title em{font-style:normal;color:var(--emerald);position:relative}
+  h1.title em::after{content:"";position:absolute;left:0;right:0;bottom:6px;height:8px;background:var(--gold-soft);z-index:-1}
+  .lede{font-size:18px;color:var(--ink-2);max-width:640px;margin:0 0 28px}
+  .hero-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .hero-meta{margin-top:16px;font-size:13px;color:var(--ink-mute);display:flex;gap:18px;flex-wrap:wrap}
+  .hero-meta span{display:inline-flex;align-items:center;gap:7px}
+
+  /* hero mockup - "Stripe-style" recovery dashboard */
+  .stage{margin-top:48px;display:grid;grid-template-columns:1fr 360px;gap:18px;align-items:start;position:relative}
+  .stage::before{content:"";position:absolute;inset:-30px;border-radius:24px;background:radial-gradient(closest-side,rgba(12,91,63,.08),transparent);z-index:-1}
+
+  .mock{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 28px 60px -28px rgba(13,31,26,.25);overflow:hidden}
+  .mock-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line);background:#fafaf6}
+  .mock-dots{display:flex;gap:5px}
+  .mock-dots span{width:9px;height:9px;border-radius:50%;background:#e3e3da;border:1px solid #d1d1c6}
+  .crumb{flex:1;font-size:12.5px;color:var(--ink-mute)}
+  .crumb b{color:var(--ink);font-weight:600}
+  .mock-body{padding:20px}
+  .mock-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+  .stat{padding:14px 16px;border:1px solid var(--line);border-radius:10px;background:var(--paper)}
+  .stat .k{font-size:11.5px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+  .stat .v{font-size:24px;font-weight:700;letter-spacing:-.015em;margin-top:4px}
+  .stat .d{font-size:12px;color:var(--emerald);font-weight:600;margin-top:2px}
+  .stat.gold{background:var(--gold-soft);border-color:#e7d6a9}
+  .stat.gold .v{color:var(--gold-2)}
+
+  table.recoveries{width:100%;border-collapse:collapse;font-size:13.5px}
+  table.recoveries th{text-align:left;padding:10px 12px;color:var(--ink-mute);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--line)}
+  table.recoveries td{padding:12px;border-bottom:1px solid var(--line)}
+  table.recoveries tr:last-child td{border-bottom:none}
+  .badge{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:600}
+  .badge.recovered{background:var(--emerald-soft);color:var(--emerald)}
+  .badge.retrying{background:#fff4d8;color:var(--gold-2)}
+  .badge.saved{background:#f1ecdf;color:var(--gold-2)}
+  .badge.lost{background:#f5e3e3;color:var(--rose)}
+  .amt{font-weight:600;font-variant-numeric:tabular-nums}
+  .amt.green{color:var(--emerald)}
+  .ts{color:var(--ink-mute);font-size:12.5px}
+
+  /* side panels */
+  .side{display:flex;flex-direction:column;gap:14px}
+  .panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 16px 40px -24px rgba(13,31,26,.18)}
+  .panel h4{margin:0 0 4px;font-size:13px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+  .ticker{font-size:30px;font-weight:700;letter-spacing:-.02em;color:var(--emerald)}
+  .ticker small{font-size:13px;color:var(--ink-mute);font-weight:500;margin-left:6px}
+
+  .save-card{padding:14px;border:1px solid var(--gold);border-radius:11px;background:linear-gradient(180deg,#fffaee,#fff)}
+  .save-card .who{display:flex;align-items:center;gap:10px}
+  .av{width:28px;height:28px;border-radius:50%;background:#dfe5dc;display:grid;place-items:center;font-size:11px;font-weight:700;color:var(--ink-2)}
+  .save-card p{margin:10px 0 0;font-size:13.5px;color:var(--ink-2);line-height:1.5}
+  .save-card .options{display:grid;gap:6px;margin-top:10px}
+  .save-card .opt{padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:12.5px;display:flex;justify-content:space-between;background:#fff}
+  .save-card .opt.pick{border-color:var(--emerald);background:var(--emerald-soft);color:var(--emerald);font-weight:600}
+
+  .timeline{font-size:13px;color:var(--ink-2);display:grid;gap:9px;margin-top:8px}
+  .tl-item{display:grid;grid-template-columns:14px 1fr;gap:10px;align-items:start}
+  .tl-item .bullet{width:8px;height:8px;border-radius:50%;background:var(--emerald);margin-top:6px;margin-left:3px}
+  .tl-item.gold .bullet{background:var(--gold)}
+  .tl-item.muted .bullet{background:var(--line-2)}
+  .tl-item .when{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:var(--ink-mute)}
+
+  /* shield decoration */
+  .shield-deco{position:absolute;right:-60px;top:60px;width:240px;height:240px;opacity:.14;pointer-events:none}
+  .shield-deco svg{width:100%;height:100%}
+
+  /* sections */
+  section{padding:88px 0;border-top:1px solid var(--line)}
+  .eyebrow{font-size:12px;color:var(--gold-2);font-weight:700;letter-spacing:.18em;text-transform:uppercase}
+  h2{font-size:38px;line-height:1.1;letter-spacing:-.025em;margin:8px 0 14px;font-weight:700;max-width:760px}
+  .sub{color:var(--ink-2);max-width:680px;font-size:16.5px}
+
+  /* problem */
+  .problem-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:start;margin-top:36px}
+  .num-big{font-size:84px;font-weight:700;letter-spacing:-.04em;line-height:1;color:var(--emerald)}
+  .num-cap{font-size:14px;color:var(--ink-mute);margin-top:6px;max-width:280px}
+  .stack{display:grid;gap:14px}
+  .stack .row{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--paper)}
+  .stack .icon{width:34px;height:34px;border-radius:9px;background:var(--emerald-soft);display:grid;place-items:center;color:var(--emerald)}
+  .stack b{display:block;margin-bottom:4px;color:var(--ink)}
+  .stack p{margin:0;font-size:14px;color:var(--ink-2)}
+
+  /* steps */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:36px}
+  .step{padding:24px;border:1px solid var(--line);border-radius:14px;background:var(--paper);position:relative}
+  .step .num{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;color:var(--gold-2);letter-spacing:.18em}
+  .step h3{font-size:18px;margin:8px 0 6px;letter-spacing:-.01em}
+  .step p{margin:0;color:var(--ink-2);font-size:14px}
+
+  /* features */
+  .features{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:36px}
+  .feature{padding:22px;border:1px solid var(--line);border-radius:14px;background:#fff}
+  .feature .ico{width:32px;height:32px;border-radius:8px;background:var(--emerald);color:#fff;display:grid;place-items:center;margin-bottom:12px}
+  .feature h3{font-size:17px;margin:0 0 6px}
+  .feature p{margin:0;color:var(--ink-2);font-size:14px}
+
+  /* pricing */
+  .prices{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:36px}
+  .price{padding:28px;border:1px solid var(--line);border-radius:18px;background:#fff;display:flex;flex-direction:column;position:relative}
+  .price.pop{border-color:var(--emerald);box-shadow:0 24px 60px -36px rgba(12,91,63,.4)}
+  .price .name{font-size:13px;color:var(--ink-mute);letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+  .price .amt-line{display:flex;align-items:baseline;gap:6px;margin-top:8px}
+  .price .amt-big{font-size:42px;font-weight:700;letter-spacing:-.02em}
+  .price .amt-suf{color:var(--ink-mute);font-size:14px}
+  .price .who{font-size:13.5px;color:var(--ink-mute);margin-top:4px}
+  .price ul{list-style:none;margin:18px 0 22px;padding:0;display:grid;gap:9px;font-size:14px;color:var(--ink-2)}
+  .price li::before{content:"";display:inline-block;width:5px;height:5px;background:var(--emerald);border-radius:50%;margin-right:10px;vertical-align:middle}
+  .price .cta{margin-top:auto}
+  .price .ribbon{position:absolute;top:-12px;right:18px;background:var(--gold);color:#fff;font-size:11.5px;padding:4px 10px;border-radius:999px;font-weight:700;letter-spacing:.06em}
+
+  .cap-note{margin-top:22px;padding:18px 20px;border:1px dashed var(--line-2);border-radius:12px;background:var(--paper);color:var(--ink-2);font-size:14px;display:flex;align-items:center;gap:14px}
+  .cap-note b{color:var(--emerald)}
+
+  /* logos */
+  .logos{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-top:32px}
+  .logo{aspect-ratio:5/2;border:1px solid var(--line);border-radius:10px;display:grid;place-items:center;color:var(--ink-2);font-weight:700;letter-spacing:.04em;background:var(--paper)}
+
+  /* testimonials */
+  .quotes{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:36px}
+  .tcard{padding:24px;border:1px solid var(--line);border-radius:14px;background:#fff}
+  .tcard .stars{color:var(--gold);font-size:13px;letter-spacing:.1em;margin-bottom:8px}
+  .tcard p{margin:0 0 16px;font-size:15px;color:var(--ink-2);line-height:1.55}
+  .who{display:flex;align-items:center;gap:10px}
+  .who .meta{font-size:12.5px}
+  .who .meta b{display:block}
+  .who .meta span{color:var(--ink-mute)}
+
+  /* faq */
+  .faq{display:grid;gap:10px;margin-top:32px}
+  details{border:1px solid var(--line);border-radius:12px;background:#fff;padding:18px 20px}
+  summary{cursor:pointer;font-weight:600;font-size:15.5px;list-style:none;display:flex;justify-content:space-between;align-items:center}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"+";color:var(--emerald);font-size:22px;font-weight:300}
+  details[open] summary::after{content:"–"}
+  details p{margin:12px 0 0;color:var(--ink-2);font-size:14.5px}
+
+  /* final */
+  .final{margin:24px 0;padding:64px 36px;border-radius:22px;background:linear-gradient(135deg,var(--emerald) 0%,#0a4a35 100%);color:#fff;text-align:center;position:relative;overflow:hidden}
+  .final::before{content:"";position:absolute;inset:0;background:radial-gradient(700px 280px at 80% 0%,rgba(180,138,60,.35),transparent 60%);pointer-events:none}
+  .final h2{color:#fff;margin-left:auto;margin-right:auto}
+  .final p{color:rgba(255,255,255,.85)}
+  .final .btn-primary{background:var(--gold);border-color:var(--gold);color:#0d1f1a}
+  .final .btn-primary:hover{background:#c89c4f}
+  .final .btn-ghost{color:#fff;border-color:rgba(255,255,255,.4)}
+  .final .btn-ghost:hover{border-color:#fff;color:#fff}
+
+  footer{padding:44px 0 60px;color:var(--ink-mute);font-size:13px;border-top:1px solid var(--line);background:var(--paper)}
+  .ft-cols{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:24px}
+  .ft-cols h5{color:var(--ink);font-size:13px;margin:0 0 12px;letter-spacing:.04em}
+  .ft-cols a{display:block;padding:5px 0;color:var(--ink-mute)}
+  .ft-cols a:hover{color:var(--emerald)}
+  .ft-bottom{margin-top:32px;padding-top:18px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+
+  @media (max-width:880px){
+    h1.title{font-size:40px}
+    h2{font-size:28px}
+    .stage{grid-template-columns:1fr}
+    .mock-stats{grid-template-columns:1fr 1fr}
+    .problem-grid,.steps,.features,.prices,.quotes,.logos,.ft-cols{grid-template-columns:1fr 1fr}
+    .nav-links{display:none}
+  }
+</style>
+</head>
+<body>
+
+<nav class="top"><div class="wrap nav-inner">
+  <a class="brand" href="#"><span class="brand-mark">CS</span> ChurnShield</a>
+  <div class="nav-links">
+    <a href="#how">How it works</a>
+    <a href="#features">Features</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#faq">FAQ</a>
+    <a href="#">Customers</a>
+  </div>
+  <div class="nav-cta">
+    <a class="btn btn-ghost" href="#">Sign in</a>
+    <a class="btn btn-primary" href="#pricing">Install free</a>
+  </div>
+</div></nav>
+
+<header class="hero"><div class="wrap" style="position:relative">
+  <span class="pill"><span class="dot"></span> Listed on the Stripe App Marketplace</span>
+  <h1 class="title">Stop watching <em>recoverable revenue</em> walk out the door.</h1>
+  <p class="lede">ChurnShield installs on Stripe in one click and starts recovering failed payments by the end of the day. Smart card retries, branded dunning, and an AI-personalized save offer in your customer portal &mdash; all priced for indie SaaS.</p>
+  <div class="hero-actions">
+    <a class="btn btn-primary btn-lg" href="#pricing">Install on Stripe &rarr;</a>
+    <a class="btn btn-ghost btn-lg" href="#how">Watch a 90-second demo</a>
+  </div>
+  <div class="hero-meta">
+    <span>Free under $1k MRR processed</span>
+    <span>&middot;</span>
+    <span>Recovers an average of 38% of failed payments</span>
+    <span>&middot;</span>
+    <span>5% capped, never net-negative</span>
+  </div>
+
+  <div class="shield-deco" aria-hidden="true">
+    <svg viewBox="0 0 200 200">
+      <path d="M100 10 L180 40 L180 95 C180 140 145 175 100 190 C55 175 20 140 20 95 L20 40 Z" fill="none" stroke="#0c5b3f" stroke-width="2"/>
+      <path d="M100 30 L160 52 L160 95 C160 130 135 158 100 170 C65 158 40 130 40 95 L40 52 Z" fill="none" stroke="#b48a3c" stroke-width="1.2"/>
+      <path d="M70 100 L92 122 L132 80" fill="none" stroke="#0c5b3f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <div class="stage">
+    <!-- main mockup: recoveries dashboard -->
+    <div class="mock">
+      <div class="mock-head">
+        <div class="mock-dots"><span></span><span></span><span></span></div>
+        <div class="crumb"><b>Stripe</b> &middot; Apps &middot; ChurnShield &middot; <span class="mono">Recoveries</span></div>
+        <div style="font-size:12px;color:var(--ink-mute);font-family:ui-monospace,SFMono-Regular,Menlo,monospace">live</div>
+      </div>
+      <div class="mock-body">
+        <div class="mock-stats">
+          <div class="stat gold"><div class="k">Recovered MTD</div><div class="v">$11,847</div><div class="d" style="color:var(--gold-2)">+$2,310 this week</div></div>
+          <div class="stat"><div class="k">Failed payments</div><div class="v">62</div><div class="d">38% recovered</div></div>
+          <div class="stat"><div class="k">Cancel saves</div><div class="v">14</div><div class="d">$3,290 retained</div></div>
+          <div class="stat"><div class="k">Net of fees</div><div class="v">$10,914</div><div class="d">5% cap, never under</div></div>
+        </div>
+        <table class="recoveries">
+          <thead><tr><th>Customer</th><th>Reason</th><th>Status</th><th style="text-align:right">Amount</th><th style="text-align:right">When</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><div class="who"><div class="av">AC</div><div><b>Acme Co.</b><div class="ts mono">cus_PT3v9...</div></div></div></td>
+              <td>card_declined &middot; insufficient_funds</td>
+              <td><span class="badge recovered">recovered</span></td>
+              <td class="amt green" style="text-align:right">+$298.00</td>
+              <td class="ts" style="text-align:right">2m ago</td>
+            </tr>
+            <tr>
+              <td><div class="who"><div class="av">NW</div><div><b>Nightwatch</b><div class="ts mono">cus_PT2k1...</div></div></div></td>
+              <td>cancel_flow &middot; "too expensive"</td>
+              <td><span class="badge saved">saved &middot; pause 60d</span></td>
+              <td class="amt" style="text-align:right">$149.00</td>
+              <td class="ts" style="text-align:right">11m ago</td>
+            </tr>
+            <tr>
+              <td><div class="who"><div class="av">RV</div><div><b>RoverWorks</b><div class="ts mono">cus_PT2c0...</div></div></div></td>
+              <td>card_declined &middot; expired_card</td>
+              <td><span class="badge retrying">retry 2 of 4</span></td>
+              <td class="amt" style="text-align:right">$79.00</td>
+              <td class="ts" style="text-align:right">38m ago</td>
+            </tr>
+            <tr>
+              <td><div class="who"><div class="av">PV</div><div><b>Pivot Labs</b><div class="ts mono">cus_PT1z9...</div></div></div></td>
+              <td>cancel_flow &middot; "missing feature"</td>
+              <td><span class="badge saved">saved &middot; 20% disc.</span></td>
+              <td class="amt" style="text-align:right">$199.00</td>
+              <td class="ts" style="text-align:right">1h ago</td>
+            </tr>
+            <tr>
+              <td><div class="who"><div class="av">HM</div><div><b>HarborMail</b><div class="ts mono">cus_PT1k8...</div></div></div></td>
+              <td>card_declined &middot; do_not_honor</td>
+              <td><span class="badge recovered">recovered</span></td>
+              <td class="amt green" style="text-align:right">+$49.00</td>
+              <td class="ts" style="text-align:right">2h ago</td>
+            </tr>
+            <tr>
+              <td><div class="who"><div class="av">KT</div><div><b>Kettle</b><div class="ts mono">cus_PT0y2...</div></div></div></td>
+              <td>cancel_flow &middot; "switching tools"</td>
+              <td><span class="badge lost">lost</span></td>
+              <td class="amt" style="text-align:right">$99.00</td>
+              <td class="ts" style="text-align:right">3h ago</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- side panels -->
+    <aside class="side">
+      <div class="panel">
+        <h4>Recovered, last 30 days</h4>
+        <div class="ticker">$31,420<small>across 184 invoices</small></div>
+      </div>
+
+      <div class="panel save-card">
+        <h4 style="color:var(--gold-2)">Save offer &middot; AI-personalized</h4>
+        <div class="who" style="margin-top:8px"><div class="av">NW</div><div><b style="font-size:13.5px">Nightwatch</b><div class="ts">2 yrs &middot; $149/mo</div></div></div>
+        <p>"You've been with us through three product launches. We'd hate to lose you over price. Pause for sixty days, or stay at $119 for the rest of the year."</p>
+        <div class="options">
+          <div class="opt pick"><span>Pause 60 days</span><span>chosen</span></div>
+          <div class="opt"><span>$119/mo for 12 months</span><span>20% off</span></div>
+          <div class="opt"><span>Cancel anyway</span><span>&rarr;</span></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h4>Activity</h4>
+        <div class="timeline">
+          <div class="tl-item"><span class="bullet"></span><div><div class="when">14:02</div>Acme Co. retry succeeded &middot; <b>+$298</b></div></div>
+          <div class="tl-item gold"><span class="bullet"></span><div><div class="when">13:51</div>Nightwatch chose pause &middot; <b>$149 saved</b></div></div>
+          <div class="tl-item"><span class="bullet"></span><div><div class="when">13:24</div>Pivot Labs accepted 20% offer</div></div>
+          <div class="tl-item muted"><span class="bullet"></span><div><div class="when">13:18</div>RoverWorks retry queued for 09:00 Tue</div></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div></header>
+
+<section id="problem"><div class="wrap">
+  <span class="eyebrow">The hidden leak</span>
+  <h2>Indie SaaS lose 9-13% of revenue to involuntary churn. Most never see it leave.</h2>
+  <p class="sub">Your bank declines a card, Stripe retries it three times on a fixed schedule, and after seven days the subscription is canceled. No email. No save offer. No retention path. ChurnShield closes that gap with the same playbook the upmarket retention tools use, priced for the indie tier.</p>
+  <div class="problem-grid">
+    <div>
+      <div class="num-big">38%</div>
+      <div class="num-cap">average failed-payment recovery rate across ChurnShield customers in their first sixty days.</div>
+      <div style="height:18px"></div>
+      <div class="num-big" style="color:var(--gold-2)">$316</div>
+      <div class="num-cap">average annualized save per cancel-flow LLM offer accepted on the Growth tier.</div>
+    </div>
+    <div class="stack">
+      <div class="row">
+        <div class="icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h18M5 6h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/><path d="M9 16h2"/></svg>
+        </div>
+        <div><b>Smart card retries</b><p>Day-of-week and time-of-day optimized per card brand. Recovers more on retry one than Stripe's default does in seven days.</p></div>
+      </div>
+      <div class="row">
+        <div class="icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M4 8l8 6 8-6"/></svg>
+        </div>
+        <div><b>Branded dunning emails</b><p>Sent through Resend with your domain and tone. Replaces Stripe's generic template with three sequence variants tested against your tier.</p></div>
+      </div>
+      <div class="row">
+        <div class="icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>
+        </div>
+        <div><b>Personalized save flow</b><p>Drop-in JS for your customer portal. The cancel button opens an AI-personalized offer based on tenure, plan, and reason. You set the discount and pause caps.</p></div>
+      </div>
+      <div class="row">
+        <div class="icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l4 4L21 4"/></svg>
+        </div>
+        <div><b>Always net-positive</b><p>5% of recovered revenue cap. If we don't make you money in a billing period, we don't charge you.</p></div>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<section id="how"><div class="wrap">
+  <span class="eyebrow">How it works</span>
+  <h2>One install. Three workflows. Zero engineering required.</h2>
+  <div class="steps">
+    <div class="step">
+      <div class="num">01 &middot; INSTALL</div>
+      <h3>Connect Stripe in one click</h3>
+      <p>OAuth via Stripe Connect. We read invoice and subscription events and never touch payment methods directly.</p>
+    </div>
+    <div class="step">
+      <div class="num">02 &middot; CONFIGURE</div>
+      <h3>Pick your save-offer rules</h3>
+      <p>Cap discounts, set pause durations, choose retry windows. Sensible defaults preloaded by industry benchmark.</p>
+    </div>
+    <div class="step">
+      <div class="num">03 &middot; RECOVER</div>
+      <h3>Watch the dashboard fill up</h3>
+      <p>By the end of the first day, you'll have at least one recovery on the timeline. By the end of the first week, the product has paid for the next year.</p>
+    </div>
+  </div>
+</div></section>
+
+<section id="features"><div class="wrap">
+  <span class="eyebrow">What's in the box</span>
+  <h2>The retention stack churnkey-tier teams build internally.</h2>
+  <div class="features">
+    <div class="feature">
+      <div class="ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 2v20M5 9h14M5 15h14"/></svg></div>
+      <h3>Adaptive retry scheduler</h3>
+      <p>Card-brand-aware retry timing. Visa Tuesday morning. Amex Friday evening. Plus retry-on-payday inference for B2C SaaS.</p>
+    </div>
+    <div class="feature">
+      <div class="ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></div>
+      <h3>Branded dunning sequences</h3>
+      <p>Three pre-built sequences (gentle, firm, last-chance) sent through your domain via Resend. Edit copy in plain English.</p>
+    </div>
+    <div class="feature">
+      <div class="ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg></div>
+      <h3>Cancel-flow widget</h3>
+      <p>One line of JS in your customer portal. Pause, discount, downgrade, or feature-unlock offers, all rule-bounded so you can't bleed margin.</p>
+    </div>
+    <div class="feature">
+      <div class="ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M3 3v18h18"/><path d="M7 13l4-4 4 4 5-5"/></svg></div>
+      <h3>Cohort benchmarks</h3>
+      <p>See how your involuntary churn rate compares to other Stripe SaaS in your MRR band. Updated monthly with anonymous, opt-in data.</p>
+    </div>
+    <div class="feature">
+      <div class="ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 17l6-6 4 4 8-8"/></svg></div>
+      <h3>Open metrics, by default</h3>
+      <p>Every customer can publish a public dashboard of recovered revenue, retention rate, and average save value. Build trust, not folklore.</p>
+    </div>
+    <div class="feature">
+      <div class="ico"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 2L4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6z"/></svg></div>
+      <h3>Margin guardrails</h3>
+      <p>Hard cap on discount %, max pause length, and offer eligibility rules. The LLM never goes off-script with your money.</p>
+    </div>
+  </div>
+</div></section>
+
+<section id="pricing"><div class="wrap">
+  <span class="eyebrow">Pricing</span>
+  <h2>Free until you're profitable. After that, capped at 5%.</h2>
+  <p class="sub">All plans include card retries, branded dunning, the cancel-flow widget, and the recovery dashboard. Annual billing gets you two months free.</p>
+  <div class="prices">
+    <div class="price">
+      <div class="name">Free</div>
+      <div class="amt-line"><div class="amt-big">$0</div><div class="amt-suf">/mo</div></div>
+      <div class="who">Under $1k MRR processed.</div>
+      <ul>
+        <li>Smart retries on every failed payment</li>
+        <li>One dunning sequence (default tone)</li>
+        <li>Cancel-flow widget, default copy</li>
+        <li>Recovery dashboard</li>
+        <li>ChurnShield branding in emails</li>
+      </ul>
+      <a class="btn btn-ghost cta" href="#">Install free</a>
+    </div>
+    <div class="price pop">
+      <div class="ribbon">Most popular</div>
+      <div class="name" style="color:var(--emerald)">Starter</div>
+      <div class="amt-line"><div class="amt-big">$49</div><div class="amt-suf">/mo</div></div>
+      <div class="who">$1k - $10k MRR processed.</div>
+      <ul>
+        <li>Three branded dunning sequences (your domain)</li>
+        <li>AI-personalized save offers</li>
+        <li>Cohort benchmarks</li>
+        <li>Customer portal widget, fully branded</li>
+        <li>5% cap on recovered revenue</li>
+      </ul>
+      <a class="btn btn-primary cta" href="#">Start on Starter</a>
+    </div>
+    <div class="price">
+      <div class="name">Growth</div>
+      <div class="amt-line"><div class="amt-big">$149</div><div class="amt-suf">/mo</div></div>
+      <div class="who">$10k - $50k MRR processed.</div>
+      <ul>
+        <li>Everything in Starter</li>
+        <li>Multi-product / multi-currency</li>
+        <li>Slack alerts on save events</li>
+        <li>Open-metrics public page</li>
+        <li>Priority support</li>
+      </ul>
+      <a class="btn btn-ghost cta" href="#">Start on Growth</a>
+    </div>
+  </div>
+
+  <div class="cap-note">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--emerald);flex:0 0 22px"><path d="M12 2L4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6z"/><path d="M9 12l2 2 4-4"/></svg>
+    <div><b>Net-positive guarantee.</b> If we don't recover at least your subscription fee in a billing period, we credit it back. The 5% cap on recovered revenue means we always cost less than we save.</div>
+  </div>
+</div></section>
+
+<section id="trusted"><div class="wrap">
+  <span class="eyebrow">Trusted by</span>
+  <h2 style="font-size:24px;letter-spacing:-.015em">Indie SaaS founders who measure their own MRR.</h2>
+  <div class="logos">
+    <div class="logo">NIGHTWATCH</div>
+    <div class="logo">PIVOT LABS</div>
+    <div class="logo">ROVERWORKS</div>
+    <div class="logo">HARBORMAIL</div>
+    <div class="logo">KETTLE</div>
+    <div class="logo">ACME CO.</div>
+  </div>
+  <p style="color:var(--ink-mute);font-size:12px;margin-top:14px">Placeholder logos &middot; design preview only.</p>
+</div></section>
+
+<section id="testimonials"><div class="wrap">
+  <span class="eyebrow">Customer voices</span>
+  <h2>Open metrics. Honest results.</h2>
+  <div class="quotes">
+    <div class="tcard">
+      <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+      <p>&ldquo;We installed it on a Tuesday. By Friday it had recovered a payment that paid for the year. We pinned the Slack notification.&rdquo;</p>
+      <div class="who"><div class="av">DK</div><div class="meta"><b>Dan K.</b><span>Founder, $14k MRR SaaS &middot; placeholder</span></div></div>
+    </div>
+    <div class="tcard">
+      <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+      <p>&ldquo;The save flow alone retained eleven customers last month. Eleven. The dashboard tells me which ones, what offer they took, and how much it cost me. That's the whole product I would have built.&rdquo;</p>
+      <div class="who"><div class="av">EM</div><div class="meta"><b>Elena M.</b><span>Co-founder, B2B SaaS &middot; placeholder</span></div></div>
+    </div>
+    <div class="tcard">
+      <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+      <p>&ldquo;We used to look at Churnkey at $400 a month and feel priced out. ChurnShield gave us 80% of the value at $49 and shipped a Stripe app that didn't need our engineer.&rdquo;</p>
+      <div class="who"><div class="av">RJ</div><div class="meta"><b>Rohan J.</b><span>Solo founder &middot; placeholder</span></div></div>
+    </div>
+  </div>
+  <p style="color:var(--ink-mute);font-size:12px;margin-top:14px">Placeholder testimonials &middot; representative of pre-launch beta feedback.</p>
+</div></section>
+
+<section id="faq"><div class="wrap">
+  <span class="eyebrow">Frequently asked</span>
+  <h2>Everything indie founders want to know before installing a Stripe app.</h2>
+  <div class="faq">
+    <details open><summary>Will this conflict with Stripe's built-in retries?</summary>
+      <p>No. We replace Stripe's default retry schedule with our own (you toggle this on install) and disable Stripe's generic dunning emails so customers don't get duplicates. Both can be reverted in one click if you ever uninstall.</p>
+    </details>
+    <details><summary>What does the AI actually do in the save flow?</summary>
+      <p>Given the customer's tenure, plan, and stated cancel reason, the model picks one of your pre-approved offers (pause, discount, downgrade, feature-unlock) and writes a one-paragraph message in your tone. You hard-cap discount % and pause length in admin so the model can't bleed your margin.</p>
+    </details>
+    <details><summary>Are we just paying you 5% of revenue we'd recover anyway?</summary>
+      <p>No. The 5% is calculated on incremental recovery vs. Stripe's default behavior. Most teams see a 30-40 point lift on involuntary churn alone, and another 15-25% on cancel-flow saves. If we're not net-positive, we're free.</p>
+    </details>
+    <details><summary>Do you support Paddle and Lemon Squeezy?</summary>
+      <p>Stripe is GA. Paddle and Lemon Squeezy are on the public roadmap and shipping in Q2 2026. Email us if you want to be a design partner.</p>
+    </details>
+    <details><summary>How long does install take?</summary>
+      <p>Under five minutes for the free tier. Branded dunning takes another fifteen to set up your domain in Resend. The cancel-flow widget is one line of JS in your customer portal.</p>
+    </details>
+  </div>
+</div></section>
+
+<div class="wrap">
+  <div class="final">
+    <span class="pill" style="background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.25)"><span class="dot" style="background:var(--gold)"></span> Free under $1k MRR processed</span>
+    <h2 style="margin-top:14px;font-size:42px">The cheapest revenue you'll ship this quarter.</h2>
+    <p class="sub" style="font-size:16.5px;color:rgba(255,255,255,.86)">Install in five minutes, recover by end of day, expand on Starter when the math becomes obvious.</p>
+    <div style="margin-top:22px;display:flex;justify-content:center;gap:12px;flex-wrap:wrap">
+      <a class="btn btn-primary btn-lg" href="#">Install on Stripe</a>
+      <a class="btn btn-ghost btn-lg" href="#">Read the open metrics</a>
+    </div>
+  </div>
+</div>
+
+<footer><div class="wrap">
+  <div class="ft-cols">
+    <div>
+      <div class="brand"><span class="brand-mark">CS</span> ChurnShield</div>
+      <p style="margin-top:10px;max-width:300px">Stop watching recoverable revenue walk out the door. Built for indie SaaS founders who run on Stripe.</p>
+    </div>
+    <div>
+      <h5>Product</h5>
+      <a href="#">Features</a><a href="#">Pricing</a><a href="#">Open metrics</a><a href="#">Changelog</a>
+    </div>
+    <div>
+      <h5>Resources</h5>
+      <a href="#">Churn calculator</a><a href="#">Benchmarks 2026</a><a href="#">Docs</a><a href="#">Stripe app listing</a>
+    </div>
+    <div>
+      <h5>Company</h5>
+      <a href="#">About</a><a href="#">Customers</a><a href="#">Affiliate (30%)</a><a href="#">Contact</a>
+    </div>
+  </div>
+  <div class="ft-bottom">
+    <span>&copy; 2026 ChurnShield, Inc. &middot; Concept page</span>
+    <span><a href="../index.html">&larr; Back to gallery</a></span>
+  </div>
+</div></footer>
+
+</body>
+</html>

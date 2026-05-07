@@ -1,0 +1,579 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>InboxCanary - Continuous deliverability monitoring for cold outbound</title>
+<meta name="description" content="Hourly RBL, SPF/DKIM/DMARC, and seed-inbox checks for every sending domain. Catch the spam-folder slide before it kills your pipeline." />
+<style>
+  :root{
+    --bg:#06101c;
+    --bg-2:#0b1726;
+    --panel:#0f1f33;
+    --panel-2:#142a45;
+    --line:rgba(140,180,220,.10);
+    --line-2:rgba(140,180,220,.18);
+    --ink:#e8f1fb;
+    --ink-dim:#9bb0c8;
+    --ink-mute:#5e7591;
+    --lime:#c8ff5e;
+    --cyan:#5eead4;
+    --amber:#ffd166;
+    --red:#ff7a8a;
+    --grad:linear-gradient(135deg,#c8ff5e 0%,#5eead4 100%);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  body{background:
+    radial-gradient(1200px 600px at 80% -10%,rgba(94,234,212,.10),transparent 60%),
+    radial-gradient(900px 500px at 0% 10%,rgba(200,255,94,.06),transparent 60%),
+    var(--bg);
+    overflow-x:hidden;
+  }
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1200px;margin:0 auto;padding:0 28px}
+
+  /* nav */
+  nav.top{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rgba(6,16,28,.65);border-bottom:1px solid var(--line)}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:-.01em}
+  .brand-mark{width:26px;height:26px;border-radius:8px;background:var(--grad);display:grid;place-items:center;color:#06101c;font-weight:900;font-size:13px}
+  .nav-links{display:flex;gap:28px;font-size:14px;color:var(--ink-dim)}
+  .nav-links a:hover{color:var(--ink)}
+  .nav-cta{display:flex;gap:10px;align-items:center}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:8px;font-weight:600;font-size:13.5px;border:1px solid transparent;cursor:pointer;transition:all .15s}
+  .btn-ghost{color:var(--ink-dim);border-color:var(--line-2)}
+  .btn-ghost:hover{color:var(--ink);border-color:rgba(200,255,94,.3)}
+  .btn-primary{background:var(--lime);color:#06101c}
+  .btn-primary:hover{background:#d8ff7c}
+  .btn-lg{padding:13px 18px;font-size:14.5px}
+
+  /* hero */
+  header.hero{padding:64px 0 40px;position:relative}
+  .pill{display:inline-flex;align-items:center;gap:8px;padding:5px 11px;border-radius:999px;background:rgba(94,234,212,.08);border:1px solid rgba(94,234,212,.25);color:var(--cyan);font-size:12.5px;font-weight:500;letter-spacing:.01em}
+  .live-dot{width:7px;height:7px;border-radius:50%;background:var(--lime);box-shadow:0 0 0 0 rgba(200,255,94,.7);animation:pulse 1.8s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(200,255,94,.6)}70%{box-shadow:0 0 0 10px rgba(200,255,94,0)}100%{box-shadow:0 0 0 0 rgba(200,255,94,0)}}
+  h1.title{font-size:60px;line-height:1.04;letter-spacing:-.035em;margin:18px 0 18px;font-weight:700}
+  h1.title em{font-style:normal;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lede{font-size:18px;color:var(--ink-dim);max-width:620px;margin:0 0 28px}
+  .hero-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .hero-meta{margin-top:18px;font-size:13px;color:var(--ink-mute);display:flex;gap:18px;flex-wrap:wrap}
+  .hero-meta span{display:inline-flex;align-items:center;gap:7px}
+  .check{width:14px;height:14px;border-radius:50%;background:rgba(200,255,94,.15);display:inline-grid;place-items:center;color:var(--lime);font-size:9px;font-weight:900}
+
+  /* hero mockup */
+  .mockup{margin-top:54px;border-radius:18px;background:linear-gradient(180deg,#0f1f33,#0b1726);border:1px solid var(--line-2);box-shadow:0 40px 90px -30px rgba(0,0,0,.7),0 0 0 1px rgba(94,234,212,.06) inset;padding:14px;position:relative;overflow:hidden}
+  .mockup::before{content:"";position:absolute;inset:-1px;background:linear-gradient(180deg,rgba(94,234,212,.16),transparent 30%);pointer-events:none;border-radius:18px}
+  .mock-head{display:flex;align-items:center;gap:10px;padding:6px 8px 12px;border-bottom:1px solid var(--line)}
+  .mock-dots{display:flex;gap:6px}
+  .mock-dots span{width:10px;height:10px;border-radius:50%;background:#1a2c44}
+  .mock-url{flex:1;text-align:center;font-size:12px;color:var(--ink-mute);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .mock-body{display:grid;grid-template-columns:220px 1fr;gap:14px;padding:14px 6px 6px}
+  .mock-side{border-right:1px solid var(--line);padding-right:14px;font-size:13px}
+  .mock-side .group{color:var(--ink-mute);text-transform:uppercase;letter-spacing:.12em;font-size:10.5px;margin:14px 0 8px}
+  .mock-side .item{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;color:var(--ink-dim);cursor:default}
+  .mock-side .item.active{background:rgba(94,234,212,.08);color:var(--ink)}
+  .mock-side .dot{width:6px;height:6px;border-radius:50%;background:var(--lime)}
+  .mock-side .dot.warn{background:var(--amber)}
+  .mock-side .dot.bad{background:var(--red)}
+  .mock-main{display:grid;grid-template-rows:auto auto auto;gap:14px}
+  .mock-row{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:14px}
+  .card{background:rgba(255,255,255,.015);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .card h4{margin:0 0 8px;font-size:12px;color:var(--ink-mute);font-weight:500;letter-spacing:.06em;text-transform:uppercase}
+  .score{display:flex;align-items:end;gap:14px}
+  .gauge{width:140px;height:80px;position:relative;flex:0 0 140px}
+  .gauge svg{width:100%;height:100%;display:block}
+  .score-num{font-size:40px;font-weight:700;letter-spacing:-.02em;line-height:1}
+  .score-label{color:var(--ink-mute);font-size:12.5px;margin-top:4px}
+  .delta-up{color:var(--lime);font-size:12px;font-weight:600}
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+  .stat{padding:10px;border:1px solid var(--line);border-radius:9px;background:rgba(255,255,255,.01)}
+  .stat .v{font-size:20px;font-weight:700;letter-spacing:-.01em}
+  .stat .k{font-size:11.5px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px}
+
+  /* spark + bars */
+  .spark{height:120px;width:100%}
+  .legend{display:flex;gap:12px;font-size:11.5px;color:var(--ink-mute);margin-top:6px}
+  .legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:middle}
+
+  /* RBL list */
+  .rbl{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:12.5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .rbl div:nth-child(odd){color:var(--ink-dim)}
+  .tag{font-size:10.5px;padding:2px 7px;border-radius:5px;font-weight:600;letter-spacing:.04em}
+  .tag.ok{background:rgba(200,255,94,.12);color:var(--lime)}
+  .tag.warn{background:rgba(255,209,102,.12);color:var(--amber)}
+  .tag.bad{background:rgba(255,122,138,.12);color:var(--red)}
+
+  /* sections */
+  section{padding:88px 0;border-top:1px solid var(--line)}
+  .eyebrow{font-size:12.5px;color:var(--cyan);font-weight:600;letter-spacing:.14em;text-transform:uppercase}
+  h2{font-size:38px;line-height:1.1;letter-spacing:-.025em;margin:8px 0 14px;font-weight:700;max-width:760px}
+  .sub{color:var(--ink-dim);max-width:660px;font-size:16.5px}
+
+  /* problem */
+  .promise{display:grid;grid-template-columns:1.2fr 1fr;gap:48px;align-items:start}
+  .quote{padding:22px;border-left:2px solid var(--lime);background:rgba(200,255,94,.04);border-radius:0 12px 12px 0;font-size:17px;line-height:1.5;color:var(--ink)}
+  .quote cite{display:block;margin-top:14px;font-style:normal;color:var(--ink-mute);font-size:13px}
+
+  /* steps */
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:36px}
+  .step{padding:22px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.015);position:relative}
+  .step .num{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;color:var(--cyan);letter-spacing:.18em}
+  .step h3{font-size:17px;margin:10px 0 6px;letter-spacing:-.01em}
+  .step p{margin:0;color:var(--ink-dim);font-size:14px}
+
+  /* features */
+  .features{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:36px}
+  .feature{padding:24px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.02),transparent)}
+  .feature .icon{width:34px;height:34px;border-radius:9px;background:rgba(94,234,212,.1);border:1px solid rgba(94,234,212,.25);display:grid;place-items:center;color:var(--cyan);margin-bottom:14px}
+  .feature h3{font-size:17px;margin:0 0 6px}
+  .feature p{margin:0;color:var(--ink-dim);font-size:14px}
+
+  /* pricing */
+  .prices{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:36px}
+  .price{padding:26px;border:1px solid var(--line-2);border-radius:18px;background:var(--panel);display:flex;flex-direction:column}
+  .price.pop{border-color:rgba(200,255,94,.5);background:linear-gradient(180deg,rgba(200,255,94,.05),var(--panel))}
+  .price .name{font-size:14px;color:var(--ink-dim);letter-spacing:.06em;text-transform:uppercase}
+  .price .amt{font-size:42px;font-weight:700;letter-spacing:-.02em;margin:8px 0 2px}
+  .price .amt small{font-size:14px;color:var(--ink-mute);font-weight:500;margin-left:4px}
+  .price ul{list-style:none;margin:18px 0 22px;padding:0;display:grid;gap:9px;font-size:14px;color:var(--ink-dim)}
+  .price li::before{content:"";display:inline-block;width:6px;height:6px;background:var(--lime);border-radius:50%;margin-right:10px;vertical-align:middle}
+  .price .cta{margin-top:auto}
+
+  /* logos */
+  .logos{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-top:32px}
+  .mono{aspect-ratio:5/2;border:1px dashed var(--line-2);border-radius:10px;display:grid;place-items:center;color:var(--ink-mute);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;letter-spacing:.05em}
+
+  /* testimonials */
+  .quotes{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:36px}
+  .tcard{padding:24px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.015)}
+  .tcard p{margin:0 0 16px;font-size:15px;color:var(--ink)}
+  .tcard .who{display:flex;align-items:center;gap:10px}
+  .av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#1f3a5b,#2c5277);display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--ink)}
+  .who .meta{font-size:12.5px}
+  .who .meta b{display:block;color:var(--ink)}
+  .who .meta span{color:var(--ink-mute)}
+
+  /* faq */
+  .faq{display:grid;gap:10px;margin-top:32px}
+  details{border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.015);padding:18px 20px}
+  details[open]{border-color:var(--line-2)}
+  summary{cursor:pointer;font-weight:600;font-size:15.5px;list-style:none;display:flex;justify-content:space-between;align-items:center}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"+";color:var(--cyan);font-size:20px;font-weight:400}
+  details[open] summary::after{content:"–"}
+  details p{margin:12px 0 0;color:var(--ink-dim);font-size:14.5px}
+
+  /* final CTA */
+  .final{margin:24px 0;padding:64px 36px;border-radius:22px;background:radial-gradient(800px 280px at 80% 0%,rgba(94,234,212,.18),transparent 60%),linear-gradient(180deg,#0d1c30,#0a1626);border:1px solid var(--line-2);text-align:center}
+  .final h2{margin-left:auto;margin-right:auto}
+  .final .sub{margin:0 auto}
+
+  footer{padding:44px 0 60px;color:var(--ink-mute);font-size:13px;border-top:1px solid var(--line)}
+  .ft-cols{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:24px}
+  .ft-cols h5{color:var(--ink);font-size:13px;margin:0 0 12px;letter-spacing:.04em}
+  .ft-cols a{display:block;padding:5px 0;color:var(--ink-mute)}
+  .ft-cols a:hover{color:var(--ink)}
+  .ft-bottom{margin-top:32px;padding-top:18px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+
+  @media (max-width:880px){
+    h1.title{font-size:40px}
+    h2{font-size:28px}
+    .mock-body{grid-template-columns:1fr}
+    .mock-side{border-right:none;border-bottom:1px solid var(--line);padding:0 0 14px}
+    .mock-row{grid-template-columns:1fr}
+    .steps,.features,.prices,.logos,.quotes,.ft-cols{grid-template-columns:1fr 1fr}
+    .promise{grid-template-columns:1fr}
+    .nav-links{display:none}
+  }
+</style>
+</head>
+<body>
+
+<nav class="top"><div class="wrap nav-inner">
+  <a class="brand" href="#">
+    <span class="brand-mark">IC</span>
+    InboxCanary
+  </a>
+  <div class="nav-links">
+    <a href="#how">How it works</a>
+    <a href="#features">Features</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#faq">FAQ</a>
+    <a href="#">Status</a>
+  </div>
+  <div class="nav-cta">
+    <a class="btn btn-ghost" href="#">Sign in</a>
+    <a class="btn btn-primary" href="#pricing">Start free</a>
+  </div>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <span class="pill"><span class="live-dot"></span> Live signal &middot; 4,812 domains monitored right now</span>
+  <h1 class="title">Catch the spam-folder slide <em>before</em> your pipeline does.</h1>
+  <p class="lede">InboxCanary watches every sending domain you own &mdash; SPF, DKIM, DMARC, 17 RBLs, and live Gmail / Outlook / Yahoo seed inboxes &mdash; and Slacks you the second placement drops. Built for cold-email teams running 5 to 500 domains.</p>
+  <div class="hero-actions">
+    <a class="btn btn-primary btn-lg" href="#pricing">Start 14-day free trial</a>
+    <a class="btn btn-ghost btn-lg" href="#how">See a live demo</a>
+  </div>
+  <div class="hero-meta">
+    <span><span class="check">&#10003;</span> No credit card required</span>
+    <span><span class="check">&#10003;</span> Smartlead &amp; Instantly OAuth</span>
+    <span><span class="check">&#10003;</span> Hourly checks, every domain</span>
+  </div>
+
+  <!-- mockup -->
+  <div class="mockup" role="img" aria-label="InboxCanary dashboard preview">
+    <div class="mock-head">
+      <div class="mock-dots"><span></span><span></span><span></span></div>
+      <div class="mock-url">app.inboxcanary.io / domains / outbound-cluster</div>
+      <div style="width:38px"></div>
+    </div>
+    <div class="mock-body">
+      <aside class="mock-side">
+        <div class="group">Sending clusters</div>
+        <div class="item active"><span class="dot"></span> outbound-cluster</div>
+        <div class="item"><span class="dot warn"></span> client-acme</div>
+        <div class="item"><span class="dot"></span> client-northstar</div>
+        <div class="item"><span class="dot bad"></span> launch-burner</div>
+        <div class="group">Domains (42)</div>
+        <div class="item"><span class="dot"></span> getreply.io</div>
+        <div class="item"><span class="dot"></span> hellopipeline.co</div>
+        <div class="item"><span class="dot warn"></span> meet-pivot.com</div>
+        <div class="item"><span class="dot"></span> warmsend.app</div>
+        <div class="item"><span class="dot"></span> coldcanvas.io</div>
+      </aside>
+
+      <div class="mock-main">
+
+        <div class="mock-row">
+          <div class="card">
+            <h4>Cluster deliverability</h4>
+            <div class="score">
+              <div class="gauge">
+                <svg viewBox="0 0 140 80">
+                  <defs>
+                    <linearGradient id="g1" x1="0" x2="1">
+                      <stop offset="0" stop-color="#ff7a8a"/>
+                      <stop offset=".5" stop-color="#ffd166"/>
+                      <stop offset="1" stop-color="#c8ff5e"/>
+                    </linearGradient>
+                  </defs>
+                  <path d="M10 75 A60 60 0 0 1 130 75" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="10" stroke-linecap="round"/>
+                  <path d="M10 75 A60 60 0 0 1 122 38" fill="none" stroke="url(#g1)" stroke-width="10" stroke-linecap="round"/>
+                  <circle cx="122" cy="38" r="5" fill="#c8ff5e"/>
+                </svg>
+              </div>
+              <div>
+                <div class="score-num">94<small style="font-size:18px;color:var(--ink-mute)">/100</small></div>
+                <div class="score-label">Inbox placement, last 24h</div>
+                <div class="delta-up">+6 vs. yesterday</div>
+              </div>
+            </div>
+            <div class="stat-grid">
+              <div class="stat"><div class="k">Gmail inbox</div><div class="v">96%</div></div>
+              <div class="stat"><div class="k">Outlook inbox</div><div class="v">91%</div></div>
+              <div class="stat"><div class="k">Yahoo inbox</div><div class="v">88%</div></div>
+              <div class="stat"><div class="k">Spam score</div><div class="v">0.4</div></div>
+            </div>
+          </div>
+
+          <div class="card" style="grid-column:span 2">
+            <h4>Inbox placement &middot; last 14 days</h4>
+            <svg class="spark" viewBox="0 0 600 120" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="ag" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0" stop-color="#c8ff5e" stop-opacity=".35"/>
+                  <stop offset="1" stop-color="#c8ff5e" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <g stroke="rgba(255,255,255,.06)" stroke-width="1">
+                <line x1="0" y1="20" x2="600" y2="20"/>
+                <line x1="0" y1="60" x2="600" y2="60"/>
+                <line x1="0" y1="100" x2="600" y2="100"/>
+              </g>
+              <path d="M0 50 L43 42 L86 48 L129 38 L172 30 L215 36 L258 80 L301 92 L344 70 L387 52 L430 40 L473 30 L516 26 L559 22 L600 20 L600 120 L0 120 Z" fill="url(#ag)"/>
+              <path d="M0 50 L43 42 L86 48 L129 38 L172 30 L215 36 L258 80 L301 92 L344 70 L387 52 L430 40 L473 30 L516 26 L559 22 L600 20" fill="none" stroke="#c8ff5e" stroke-width="2"/>
+              <path d="M0 70 L43 66 L86 72 L129 64 L172 58 L215 60 L258 96 L301 102 L344 86 L387 68 L430 60 L473 50 L516 46 L559 42 L600 38" fill="none" stroke="#5eead4" stroke-width="1.5" stroke-dasharray="3 3"/>
+              <circle cx="258" cy="80" r="4" fill="#ff7a8a"/>
+              <text x="266" y="78" fill="#ff7a8a" font-size="11" font-family="ui-monospace,monospace">incident: getreply.io listed on Spamhaus</text>
+            </svg>
+            <div class="legend">
+              <span><i style="background:#c8ff5e"></i>Inbox %</span>
+              <span><i style="background:#5eead4"></i>Reply rate (norm.)</span>
+              <span><i style="background:#ff7a8a;border-radius:50%"></i>Incident</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mock-row">
+          <div class="card">
+            <h4>Auth records</h4>
+            <div class="rbl">
+              <div>SPF &middot; getreply.io</div><span class="tag ok">PASS</span>
+              <div>DKIM &middot; selector1</div><span class="tag ok">PASS</span>
+              <div>DMARC policy</div><span class="tag warn">p=none</span>
+              <div>BIMI</div><span class="tag warn">missing</span>
+              <div>MX response</div><span class="tag ok">23 ms</span>
+            </div>
+          </div>
+          <div class="card">
+            <h4>Blacklists (17)</h4>
+            <div class="rbl">
+              <div>Spamhaus ZEN</div><span class="tag ok">CLEAN</span>
+              <div>Barracuda</div><span class="tag ok">CLEAN</span>
+              <div>SORBS spam</div><span class="tag ok">CLEAN</span>
+              <div>SURBL multi</div><span class="tag bad">LISTED</span>
+              <div>UCEPROTECT-1</div><span class="tag warn">WATCH</span>
+            </div>
+          </div>
+          <div class="card">
+            <h4>Active alerts</h4>
+            <div style="display:grid;gap:8px;font-size:13px">
+              <div style="padding:9px 11px;border:1px solid rgba(255,122,138,.25);border-radius:8px;background:rgba(255,122,138,.06)">
+                <b style="color:var(--red)">P1</b> &middot; getreply.io listed on SURBL &middot; <span style="color:var(--ink-mute)">2m ago</span>
+              </div>
+              <div style="padding:9px 11px;border:1px solid rgba(255,209,102,.25);border-radius:8px;background:rgba(255,209,102,.05)">
+                <b style="color:var(--amber)">P2</b> &middot; Outlook placement -14% &middot; <span style="color:var(--ink-mute)">37m ago</span>
+              </div>
+              <div style="padding:9px 11px;border:1px solid var(--line);border-radius:8px;color:var(--ink-dim)">
+                <b style="color:var(--lime)">resolved</b> &middot; meet-pivot.com DKIM rotated &middot; <span style="color:var(--ink-mute)">3h ago</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div></header>
+
+<section id="problem"><div class="wrap">
+  <span class="eyebrow">The silent killer</span>
+  <h2>Your tool reports "delivered." Gmail dropped it in spam four hours ago.</h2>
+  <p class="sub">Smartlead and Instantly tell you a message was accepted by the receiving server. They don't tell you the receiving server quietly classified your domain as bulk and sent every message to the promotions tab for the next eleven days. By the time your reply rate halves, you've lost the quarter.</p>
+  <div class="promise" style="margin-top:36px">
+    <div class="quote">
+      &ldquo;We lost a forty-thousand-dollar pilot because the prospect's reply went to spam and our outbound went silent for nine days. We would have caught it on day one with hourly seed checks.&rdquo;
+      <cite>&mdash; the post-mortem we wrote that became this product.</cite>
+    </div>
+    <div>
+      <div class="card" style="background:rgba(255,255,255,.02)">
+        <h4>What you don't see today</h4>
+        <ul style="list-style:none;padding:0;margin:0;display:grid;gap:10px;color:var(--ink-dim);font-size:14.5px">
+          <li>&mdash; A 22% drop in Gmail inbox placement on Tuesday at 3am.</li>
+          <li>&mdash; Your DKIM selector quietly stopped resolving after a DNS provider migration.</li>
+          <li>&mdash; getreply.io got listed on SURBL for forty-eight minutes and you sent 1,800 messages during the window.</li>
+          <li>&mdash; Outlook started routing your domain to junk for tenants on the new safe-sender list.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<section id="how"><div class="wrap">
+  <span class="eyebrow">How it works</span>
+  <h2>Four signals, every hour, on every domain you send from.</h2>
+  <p class="sub">Connect Smartlead, Instantly, or any SMTP. We do the rest. No DNS changes required.</p>
+  <div class="steps">
+    <div class="step"><div class="num">01 / CONNECT</div><h3>Plug in your sender</h3><p>OAuth Smartlead or Instantly, or paste a list of domains. Setup runs in under three minutes.</p></div>
+    <div class="step"><div class="num">02 / WATCH</div><h3>Hourly multi-signal checks</h3><p>RBLs, auth records, MX latency, and live seed-inbox placement across Gmail, Outlook, and Yahoo.</p></div>
+    <div class="step"><div class="num">03 / ALERT</div><h3>Slack the moment placement drops</h3><p>P1 listings, &gt;20% inbox decline, or auth failures fire instantly. Webhooks, email, and PagerDuty.</p></div>
+    <div class="step"><div class="num">04 / RECOVER</div><h3>Public status &amp; remediation</h3><p>Per-domain history graph, suggested fix, and a status URL you can share with clients.</p></div>
+  </div>
+</div></section>
+
+<section id="features"><div class="wrap">
+  <span class="eyebrow">What ships in the box</span>
+  <h2>Everything a deliverability ops team would build, if they had the time.</h2>
+  <div class="features">
+    <div class="feature">
+      <div class="icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M2 12h4M18 12h4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg>
+      </div>
+      <h3>17 blacklists, hourly</h3>
+      <p>Spamhaus, Barracuda, SORBS, SURBL, UCEPROTECT, and more. We probe each independently, with retry, and store the full history.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l4 4L21 4M3 6l4 4 8-8"/></svg>
+      </div>
+      <h3>Auth health, monitored</h3>
+      <p>SPF, DKIM, DMARC, BIMI, and MX response are validated continuously. Get notified the moment a record breaks or a third party flips your DMARC policy.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
+      </div>
+      <h3>Real seed-inbox placement</h3>
+      <p>30+ live Gmail, Outlook, and Yahoo accounts receive your test sends and report inbox / promo / spam placement, scored by recipient cohort.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+      </div>
+      <h3>Slack alerts that respect on-call</h3>
+      <p>P1 / P2 / P3 routing, dedupe, snooze, and per-channel filters. Pipe to PagerDuty or Opsgenie if you have a real incident process.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 13l4-4 4 4 5-5"/></svg>
+      </div>
+      <h3>Domain reputation timeline</h3>
+      <p>Every check, every alert, every seed result, on a single per-domain timeline. Useful when ESPs ask why they should re-warm you.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
+      </div>
+      <h3>Agency white-label</h3>
+      <p>Your domain, your colors, your status pages, your client logins. Resell deliverability monitoring as a recurring line item without writing code.</p>
+    </div>
+  </div>
+</div></section>
+
+<section id="pricing"><div class="wrap">
+  <span class="eyebrow">Pricing</span>
+  <h2>Priced for teams who measure pipeline in dollars, not vanity metrics.</h2>
+  <p class="sub">Every plan includes hourly RBL checks, full auth monitoring, Slack alerts, and the domain reputation timeline. Fourteen-day free trial, no card required.</p>
+  <div class="prices">
+    <div class="price">
+      <div class="name">Starter</div>
+      <div class="amt">$39<small>/mo</small></div>
+      <div style="color:var(--ink-mute);font-size:13.5px">For founders running their own outbound.</div>
+      <ul>
+        <li>5 sending domains</li>
+        <li>Hourly RBL + auth checks</li>
+        <li>Slack &amp; email alerts</li>
+        <li>14-day reputation history</li>
+      </ul>
+      <a class="btn btn-ghost cta" href="#">Start free trial</a>
+    </div>
+    <div class="price pop">
+      <div class="name" style="color:var(--lime)">Growth &middot; most popular</div>
+      <div class="amt">$99<small>/mo</small></div>
+      <div style="color:var(--ink-mute);font-size:13.5px">For outbound teams with a pipeline number to hit.</div>
+      <ul>
+        <li>20 sending domains</li>
+        <li>Live Gmail / Outlook / Yahoo seed-inbox placement</li>
+        <li>Smartlead &amp; Instantly OAuth</li>
+        <li>90-day reputation history</li>
+        <li>PagerDuty &amp; webhook routing</li>
+      </ul>
+      <a class="btn btn-primary cta" href="#">Start free trial</a>
+    </div>
+    <div class="price">
+      <div class="name">Agency</div>
+      <div class="amt">$249<small>/mo</small></div>
+      <div style="color:var(--ink-mute);font-size:13.5px">For shops managing 100+ client domains.</div>
+      <ul>
+        <li>100+ domains, multi-tenant</li>
+        <li>White-label dashboards &amp; status URLs</li>
+        <li>Per-client login &amp; access controls</li>
+        <li>Unlimited reputation history</li>
+        <li>Priority support, SLA on alerts</li>
+      </ul>
+      <a class="btn btn-ghost cta" href="#">Talk to us</a>
+    </div>
+  </div>
+  <p style="color:var(--ink-mute);font-size:13px;margin-top:18px">Add-on: white-label branding +$149/mo on Growth.</p>
+</div></section>
+
+<section id="trusted"><div class="wrap">
+  <span class="eyebrow">Trusted by</span>
+  <h2 style="font-size:24px;letter-spacing:-.015em">Cold-email teams who stopped finding out from the prospect.</h2>
+  <div class="logos">
+    <div class="mono">NORTHBEAM</div>
+    <div class="mono">PIPEFORGE</div>
+    <div class="mono">GETREPLY</div>
+    <div class="mono">SENDLOOP</div>
+    <div class="mono">COLDCANVAS</div>
+    <div class="mono">WARMSEND</div>
+  </div>
+  <p style="color:var(--ink-mute);font-size:12px;margin-top:14px">Placeholder logos &middot; design preview only.</p>
+</div></section>
+
+<section id="testimonials"><div class="wrap">
+  <span class="eyebrow">What customers say</span>
+  <h2>Built by people who lost deals to the spam folder.</h2>
+  <div class="quotes">
+    <div class="tcard">
+      <p>&ldquo;We caught a SURBL listing twelve minutes after it happened. Pulled the offending domain, kept the cluster clean, didn't lose a single quarter-end deal. This pays for itself the first time it fires.&rdquo;</p>
+      <div class="who"><div class="av">JR</div><div class="meta"><b>Jamie R.</b><span>Head of Outbound, placeholder</span></div></div>
+    </div>
+    <div class="tcard">
+      <p>&ldquo;We run forty-two sending domains across nine clients. Before InboxCanary, we found out about deliverability problems from clients. Now they find out from us, with a fix already attached.&rdquo;</p>
+      <div class="who"><div class="av">SP</div><div class="meta"><b>Sara P.</b><span>Founder, agency placeholder</span></div></div>
+    </div>
+    <div class="tcard">
+      <p>&ldquo;The seed-inbox graph alone is worth the Growth plan. I can show our CRO exactly when Gmail flipped on us, and exactly when our remediation worked.&rdquo;</p>
+      <div class="who"><div class="av">MK</div><div class="meta"><b>Marcus K.</b><span>Director of Demand Gen, placeholder</span></div></div>
+    </div>
+  </div>
+  <p style="color:var(--ink-mute);font-size:12px;margin-top:14px">Placeholder testimonials &middot; representative of pre-launch beta feedback.</p>
+</div></section>
+
+<section id="faq"><div class="wrap">
+  <span class="eyebrow">Questions</span>
+  <h2>Things people ask us in the r/coldemail DMs.</h2>
+  <div class="faq">
+    <details open><summary>How is this different from MailReach or GlockApps?</summary>
+      <p>MailReach and GlockApps are point-in-time test tools &mdash; you run a check, you see a score. InboxCanary is continuous: every domain, every hour, with alerting and a full historical reputation graph. We also ship an agency white-label and Smartlead / Instantly OAuth that those tools don't.</p>
+    </details>
+    <details><summary>Do I need to change my DNS or MX records?</summary>
+      <p>No. We read your existing SPF, DKIM, DMARC, BIMI, and MX records. We don't proxy your sending traffic.</p>
+    </details>
+    <details><summary>What happens when an alert fires?</summary>
+      <p>You get a Slack ping (or PagerDuty page on Growth) within sixty seconds, with a one-page summary: which domain, which signal, the suggested remediation, and the historical context for the alert. Most P2 alerts include a one-click "snooze if intentional" option.</p>
+    </details>
+    <details><summary>Can I monitor a client's domain on their behalf?</summary>
+      <p>Yes &mdash; that's the Agency plan. You get multi-tenant dashboards, per-client logins, and a white-label status URL like deliverability.youragency.com.</p>
+    </details>
+    <details><summary>Where do the seed inboxes come from?</summary>
+      <p>We maintain a network of 200+ live consumer accounts across Gmail, Outlook, and Yahoo, refreshed continuously. Growth plans get cohort-segmented placement (e.g. SMB Gmail vs. enterprise Workspace) so you can see who's flagging you.</p>
+    </details>
+    <details><summary>What if my domain gets flagged in the middle of the night?</summary>
+      <p>You get paged on the alert channel of your choice. We also keep a public per-domain status page so your reps can self-serve check whether the silence is them or the system.</p>
+    </details>
+  </div>
+</div></section>
+
+<div class="wrap">
+  <div class="final">
+    <span class="pill"><span class="live-dot"></span> 14-day trial &middot; cancel anytime</span>
+    <h2 style="margin-top:14px;font-size:42px">Don't find out from your prospect.</h2>
+    <p class="sub" style="font-size:16px">Plug in your sending domains. Get a Slack alert in the next sixty minutes if anything is wrong.</p>
+    <div style="margin-top:22px;display:flex;justify-content:center;gap:12px;flex-wrap:wrap">
+      <a class="btn btn-primary btn-lg" href="#">Start monitoring free</a>
+      <a class="btn btn-ghost btn-lg" href="#">Book a 10-min demo</a>
+    </div>
+  </div>
+</div>
+
+<footer><div class="wrap">
+  <div class="ft-cols">
+    <div>
+      <div class="brand"><span class="brand-mark">IC</span> InboxCanary</div>
+      <p style="margin-top:10px;max-width:300px">Continuous deliverability monitoring for outbound teams who refuse to find out from the prospect.</p>
+    </div>
+    <div>
+      <h5>Product</h5>
+      <a href="#">Features</a><a href="#">Pricing</a><a href="#">Changelog</a><a href="#">Status</a>
+    </div>
+    <div>
+      <h5>Resources</h5>
+      <a href="#">Free deliverability scan</a><a href="#">State of cold email</a><a href="#">Docs</a><a href="#">API</a>
+    </div>
+    <div>
+      <h5>Company</h5>
+      <a href="#">About</a><a href="#">Customers</a><a href="#">Contact</a><a href="#">Affiliate program</a>
+    </div>
+  </div>
+  <div class="ft-bottom">
+    <span>&copy; 2026 InboxCanary, Inc. &middot; Concept page</span>
+    <span><a href="../index.html">&larr; Back to gallery</a></span>
+  </div>
+</div></footer>
+
+</body>
+</html>
