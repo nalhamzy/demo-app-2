@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Math Bee</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --ink: #1a1a1a;
+    --muted: #777;
+    --line: #dcdcdc;
+    --center: #f7da21;
+    --petal: #e6e6e6;
+    --petal-hover: #d4d4d4;
+    --accent: #2a7ae2;
+    --good: #2ea44f;
+    --bad: #d73a49;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .app {
+    max-width: 460px;
+    margin: 0 auto;
+    padding: 16px 18px 40px;
+  }
+  header {
+    text-align: center;
+    padding: 8px 0 18px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 18px;
+  }
+  header h1 {
+    margin: 0;
+    font-size: 26px;
+    letter-spacing: 0.5px;
+  }
+  header p {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .target {
+    text-align: center;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .target strong {
+    color: var(--ink);
+    font-size: 22px;
+    margin-left: 6px;
+  }
+  .expression {
+    min-height: 46px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    padding: 6px 12px;
+    margin: 6px 0 14px;
+    color: var(--ink);
+  }
+  .expression.empty {
+    color: var(--muted);
+    font-weight: 400;
+    font-size: 15px;
+    letter-spacing: normal;
+  }
+  .running-sum {
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: -6px;
+    margin-bottom: 14px;
+    height: 18px;
+  }
+  .hive {
+    position: relative;
+    width: 300px;
+    height: 320px;
+    margin: 0 auto 18px;
+  }
+  .cell {
+    position: absolute;
+    width: 86px;
+    height: 96px;
+    clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+    background: var(--petal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    user-select: none;
+    font-size: 30px;
+    font-weight: 700;
+    transition: transform 0.08s ease, background 0.15s ease;
+  }
+  .cell:hover { background: var(--petal-hover); }
+  .cell:active { transform: scale(0.94); }
+  .cell.center { background: var(--center); }
+  .cell.pop { animation: pop 0.25s ease; }
+  @keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.12); }
+    100% { transform: scale(1); }
+  }
+  /* Positions: pointy-top hex, 1 center + 6 around */
+  .pos-c  { left: 107px; top: 112px; }
+  .pos-tl { left: 42px;  top: 40px; }
+  .pos-tr { left: 172px; top: 40px; }
+  .pos-l  { left: 0;     top: 112px; }
+  .pos-r  { left: 214px; top: 112px; }
+  .pos-bl { left: 42px;  top: 184px; }
+  .pos-br { left: 172px; top: 184px; }
+
+  .controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  button {
+    font: inherit;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink);
+    border-radius: 999px;
+    padding: 9px 18px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  button:hover { background: #f4f4f4; }
+  button:active { background: #ececec; }
+  button.primary {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+  }
+  button.primary:hover { background: #333; }
+
+  .message {
+    text-align: center;
+    height: 22px;
+    font-size: 14px;
+    margin-top: 8px;
+  }
+  .message.good { color: var(--good); }
+  .message.bad  { color: var(--bad); }
+
+  .stats {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 18px;
+    padding: 12px 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .stat { text-align: center; }
+  .stat .num { font-size: 22px; font-weight: 700; }
+  .stat .lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .rank {
+    text-align: center;
+    margin-top: 14px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .rank strong { color: var(--ink); }
+  .rank-bar {
+    margin: 8px 0 4px;
+    height: 6px;
+    background: #eee;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .rank-bar > div {
+    height: 100%;
+    background: var(--center);
+    transition: width 0.3s ease;
+  }
+
+  .found {
+    margin-top: 20px;
+  }
+  .found h3 {
+    margin: 0 0 8px;
+    font-size: 13px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .found-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .found-item {
+    background: #f4f4f4;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 13px;
+  }
+  .found-list.empty::after {
+    content: "No solutions yet — find some!";
+    color: var(--muted);
+    font-size: 13px;
+    font-style: italic;
+  }
+  footer {
+    margin-top: 24px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Math Bee</h1>
+    <p>Add the numbers to hit the target. Each equation must use the center.</p>
+  </header>
+
+  <div class="target">Target sum:<strong id="target">—</strong></div>
+
+  <div id="expression" class="expression empty">Tap the numbers to build an equation</div>
+  <div class="running-sum" id="runningSum"></div>
+
+  <div class="hive" id="hive">
+    <div class="cell center pos-c"  data-pos="c"></div>
+    <div class="cell pos-tl" data-pos="tl"></div>
+    <div class="cell pos-tr" data-pos="tr"></div>
+    <div class="cell pos-l"  data-pos="l"></div>
+    <div class="cell pos-r"  data-pos="r"></div>
+    <div class="cell pos-bl" data-pos="bl"></div>
+    <div class="cell pos-br" data-pos="br"></div>
+  </div>
+
+  <div class="controls">
+    <button id="delete">Delete</button>
+    <button id="shuffle">Shuffle</button>
+    <button id="enter" class="primary">Enter</button>
+  </div>
+
+  <div class="message" id="message"></div>
+
+  <div class="stats">
+    <div class="stat"><div class="num" id="score">0</div><div class="lbl">Score</div></div>
+    <div class="stat"><div class="num" id="solved">0</div><div class="lbl">Solved</div></div>
+    <div class="stat"><div class="num" id="possible">—</div><div class="lbl">Possible</div></div>
+  </div>
+
+  <div class="rank">
+    Rank: <strong id="rankName">Beginner</strong>
+    <div class="rank-bar"><div id="rankBar" style="width:0%"></div></div>
+  </div>
+
+  <div class="found">
+    <h3>Equations found</h3>
+    <div class="found-list empty" id="foundList"></div>
+  </div>
+
+  <div class="controls" style="margin-top:24px">
+    <button id="newGame">New puzzle</button>
+  </div>
+
+  <footer>
+    Rules: build an addition equation by tapping cells. The center (yellow) number must
+    appear at least once. Numbers can be reused. Equations of 4+ terms count.
+  </footer>
+</div>
+
+<script>
+(function () {
+  const positions = ['c', 'tl', 'tr', 'l', 'r', 'bl', 'br'];
+  const outerPositions = ['tl', 'tr', 'l', 'r', 'bl', 'br'];
+
+  let numbers = {};       // pos -> number
+  let target = 0;
+  let expression = [];    // array of {pos, value}
+  let foundKeys = new Set();
+  let foundList = [];
+  let score = 0;
+  let allSolutions = [];
+
+  const ranks = [
+    { name: 'Beginner',  pct: 0 },
+    { name: 'Novice',    pct: 5 },
+    { name: 'Apprentice',pct: 15 },
+    { name: 'Solver',    pct: 30 },
+    { name: 'Sharp',     pct: 50 },
+    { name: 'Master',    pct: 75 },
+    { name: 'Genius',    pct: 100 },
+  ];
+
+  const MIN_TERMS = 4;
+  const MAX_TERMS = 8;
+
+  function randInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function newPuzzle() {
+    // Generate 7 small distinct numbers (1..9)
+    const pool = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    // shuffle
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    const picked = pool.slice(0, 7);
+
+    numbers = {};
+    positions.forEach((p, i) => { numbers[p] = picked[i]; });
+
+    // Pick a target that has a reasonable number of solutions
+    let bestTarget = 0, bestSols = [];
+    for (let t = 12; t <= 25; t++) {
+      const sols = enumerateSolutions(numbers, t);
+      if (sols.length > bestSols.length && sols.length <= 60) {
+        bestTarget = t;
+        bestSols = sols;
+      }
+    }
+    if (bestSols.length === 0) {
+      // fallback: regenerate
+      return newPuzzle();
+    }
+
+    target = bestTarget;
+    allSolutions = bestSols;
+    expression = [];
+    foundKeys = new Set();
+    foundList = [];
+    score = 0;
+    render();
+    setMessage('');
+  }
+
+  // Enumerate distinct multisets of values (sorted) that sum to target,
+  // use 4..MAX_TERMS terms, and include the center number at least once.
+  function enumerateSolutions(nums, t) {
+    const centerVal = nums.c;
+    const values = positions.map(p => nums[p]);
+    const sorted = values.slice().sort((a, b) => a - b);
+    const results = new Set();
+
+    function recurse(idx, remaining, count, current, usedCenter) {
+      if (count > MAX_TERMS) return;
+      if (remaining === 0 && count >= MIN_TERMS && usedCenter) {
+        results.add(current.join(','));
+        return;
+      }
+      if (remaining < 0) return;
+      if (count === MAX_TERMS) return;
+      for (let i = idx; i < sorted.length; i++) {
+        const v = sorted[i];
+        if (v > remaining) break;
+        current.push(v);
+        recurse(i, remaining - v, count + 1, current, usedCenter || v === centerVal);
+        current.pop();
+      }
+    }
+    recurse(0, t, 0, [], false);
+    return [...results];
+  }
+
+  function setMessage(text, kind) {
+    const el = document.getElementById('message');
+    el.textContent = text;
+    el.className = 'message' + (kind ? ' ' + kind : '');
+  }
+
+  function render() {
+    // place numbers on cells
+    document.querySelectorAll('.cell').forEach(cell => {
+      cell.textContent = numbers[cell.dataset.pos];
+    });
+    document.getElementById('target').textContent = target;
+    document.getElementById('score').textContent = score;
+    document.getElementById('solved').textContent = foundList.length;
+    document.getElementById('possible').textContent = allSolutions.length;
+
+    const exprEl = document.getElementById('expression');
+    if (expression.length === 0) {
+      exprEl.className = 'expression empty';
+      exprEl.textContent = 'Tap the numbers to build an equation';
+    } else {
+      exprEl.className = 'expression';
+      exprEl.textContent = expression.map(e => e.value).join(' + ');
+    }
+
+    const sum = expression.reduce((a, b) => a + b.value, 0);
+    const sumEl = document.getElementById('runningSum');
+    sumEl.textContent = expression.length ? `Current sum: ${sum} / ${target}` : '';
+
+    // rank
+    const total = allSolutions.length * 6; // approx max score
+    const pct = total ? Math.min(100, Math.round((score / total) * 100)) : 0;
+    let rank = ranks[0];
+    for (const r of ranks) if (pct >= r.pct) rank = r;
+    document.getElementById('rankName').textContent = rank.name;
+    document.getElementById('rankBar').style.width = pct + '%';
+
+    // found list
+    const list = document.getElementById('foundList');
+    list.innerHTML = '';
+    if (foundList.length === 0) {
+      list.className = 'found-list empty';
+    } else {
+      list.className = 'found-list';
+      foundList.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'found-item';
+        div.textContent = item;
+        list.appendChild(div);
+      });
+    }
+  }
+
+  function tapCell(pos) {
+    if (expression.length >= MAX_TERMS) {
+      setMessage(`Max ${MAX_TERMS} terms`, 'bad');
+      return;
+    }
+    expression.push({ pos, value: numbers[pos] });
+    const cell = document.querySelector(`.cell[data-pos="${pos}"]`);
+    cell.classList.remove('pop');
+    void cell.offsetWidth;
+    cell.classList.add('pop');
+    render();
+  }
+
+  function deleteLast() {
+    expression.pop();
+    render();
+  }
+
+  function shuffle() {
+    // shuffle outer positions only (keep center fixed)
+    const outerVals = outerPositions.map(p => numbers[p]);
+    for (let i = outerVals.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [outerVals[i], outerVals[j]] = [outerVals[j], outerVals[i]];
+    }
+    outerPositions.forEach((p, i) => { numbers[p] = outerVals[i]; });
+    render();
+  }
+
+  function submit() {
+    if (expression.length < MIN_TERMS) {
+      setMessage(`Need at least ${MIN_TERMS} terms`, 'bad');
+      return;
+    }
+    const usesCenter = expression.some(e => e.pos === 'c');
+    if (!usesCenter) {
+      setMessage('Must use the center number', 'bad');
+      return;
+    }
+    const sum = expression.reduce((a, b) => a + b.value, 0);
+    if (sum !== target) {
+      setMessage(`Sum is ${sum}, not ${target}`, 'bad');
+      return;
+    }
+    const key = expression.map(e => e.value).slice().sort((a, b) => a - b).join(',');
+    if (foundKeys.has(key)) {
+      setMessage('Already found that one', 'bad');
+      return;
+    }
+    foundKeys.add(key);
+    const display = expression.map(e => e.value).join(' + ') + ' = ' + target;
+    foundList.unshift(display);
+    // points: 1 per term beyond 3, bonus for using all 7 positions distinct
+    const points = expression.length;
+    const distinctPositions = new Set(expression.map(e => e.pos)).size;
+    const bonus = distinctPositions === 7 ? 7 : 0;
+    score += points + bonus;
+    expression = [];
+    setMessage(bonus ? `Pangram! +${points + bonus}` : `Nice! +${points}`, 'good');
+    render();
+  }
+
+  // wire up
+  document.getElementById('hive').addEventListener('click', e => {
+    const cell = e.target.closest('.cell');
+    if (cell) tapCell(cell.dataset.pos);
+  });
+  document.getElementById('delete').addEventListener('click', deleteLast);
+  document.getElementById('shuffle').addEventListener('click', shuffle);
+  document.getElementById('enter').addEventListener('click', submit);
+  document.getElementById('newGame').addEventListener('click', newPuzzle);
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') submit();
+    else if (e.key === 'Backspace') deleteLast();
+    else if (e.key === ' ') { e.preventDefault(); shuffle(); }
+    else if (/^[1-9]$/.test(e.key)) {
+      const digit = parseInt(e.key, 10);
+      const pos = positions.find(p => numbers[p] === digit);
+      if (pos) tapCell(pos);
+    }
+  });
+
+  newPuzzle();
+})();
+</script>
+</body>
+</html>
