@@ -3,281 +3,231 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Math Bee</title>
+<title>Math Bee — Daily Addition Puzzle</title>
 <style>
-  :root {
-    --bg: #fff;
-    --fg: #111;
-    --muted: #888;
-    --line: #e6e6e6;
-    --accent: #f7da21;
-    --accent-dark: #e0c000;
-    --outer: #e6e6e6;
-    --good: #2e7d32;
-    --bad: #c62828;
+  :root{
+    --bg:#faf7f0;
+    --card:#fff;
+    --fg:#1a1a1a;
+    --muted:#7a7065;
+    --line:#ece4d6;
+    --accent:#f9c80e;
+    --accent-dark:#d4a906;
+    --gold:#d4af37;
+    --t1:#4895ef;
+    --t2:#f86624;
+    --t3:#9d4edd;
+    --good:#2e7d32;
+    --bad:#c62828;
+    --shadow:0 1px 2px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.06);
   }
-  * { box-sizing: border-box; }
-  html, body {
-    margin: 0; padding: 0;
-    background: var(--bg);
-    color: var(--fg);
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-    -webkit-font-smoothing: antialiased;
-  }
-  header {
-    text-align: center;
-    padding: 16px 12px 8px;
-    border-bottom: 1px solid var(--line);
-  }
-  header h1 {
-    margin: 0;
-    font-size: 22px;
-    letter-spacing: 0.5px;
-    font-weight: 700;
-  }
-  header .sub {
-    margin-top: 4px;
-    font-size: 12px;
-    color: var(--muted);
-  }
-  main {
-    max-width: 460px;
-    margin: 0 auto;
-    padding: 14px 12px 40px;
-  }
-  .target {
-    text-align: center;
-    margin: 18px 0 6px;
-  }
-  .target .label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
-  .target .value { font-size: 42px; font-weight: 700; }
-  .rule {
-    text-align: center;
-    color: var(--muted);
-    font-size: 13px;
-    margin-bottom: 14px;
-  }
-  .rule b { color: var(--fg); }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);
+    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  body{min-height:100vh;display:flex;flex-direction:column;align-items:center}
+  header{width:100%;max-width:520px;display:flex;align-items:center;justify-content:space-between;
+    padding:14px 16px;border-bottom:1px solid var(--line)}
+  header .brand{display:flex;align-items:baseline;gap:8px}
+  header .brand h1{margin:0;font-size:20px;letter-spacing:1px;font-weight:800}
+  header .brand .puzzle-id{font-size:12px;color:var(--muted)}
+  header .icons{display:flex;gap:8px}
+  header .icon-btn{background:transparent;border:none;font-size:18px;cursor:pointer;padding:4px 6px;border-radius:6px}
+  header .icon-btn:hover{background:#0001}
 
-  .input-row {
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    font-size: 26px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    margin: 10px 0 4px;
-  }
-  .input-row .chip {
-    padding: 2px 10px;
-    border-radius: 6px;
-    background: #f3f3f3;
-  }
-  .input-row .chip.center { background: var(--accent); }
-  .input-row .op { color: var(--muted); font-weight: 400; }
-  .input-row .sum {
-    margin-left: 10px;
-    color: var(--muted);
-    font-size: 18px;
-    font-weight: 500;
-  }
-  .input-row.empty .placeholder {
-    color: #bbb;
-    font-size: 16px;
-    font-weight: 400;
-  }
-  .feedback {
-    text-align: center;
-    min-height: 22px;
-    font-size: 14px;
-    margin-bottom: 8px;
-  }
-  .feedback.good { color: var(--good); }
-  .feedback.bad { color: var(--bad); }
+  main{width:100%;max-width:520px;padding:10px 16px 40px}
 
-  .hive {
-    position: relative;
-    width: 300px;
-    height: 320px;
-    margin: 8px auto 16px;
+  /* targets */
+  .targets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 14px}
+  .target{
+    border-radius:12px;padding:10px;text-align:center;
+    background:var(--card);border:2px solid var(--line);box-shadow:var(--shadow);
+    cursor:pointer;transition:transform .1s;position:relative;overflow:hidden
   }
-  .cell {
-    position: absolute;
-    width: 92px; height: 104px;
-    cursor: pointer;
-    user-select: none;
-    transition: transform 0.08s;
-  }
-  .cell:active { transform: scale(0.94); }
-  .cell svg { width: 100%; height: 100%; display: block; }
-  .cell polygon {
-    fill: var(--outer);
-    stroke: #fff;
-    stroke-width: 2;
-  }
-  .cell.center polygon { fill: var(--accent); }
-  .cell text {
-    font-family: inherit;
-    font-size: 32px;
-    font-weight: 700;
-    text-anchor: middle;
-    dominant-baseline: central;
-    fill: var(--fg);
-    pointer-events: none;
-  }
-  /* Hex layout: center + 6 around */
-  .cell.c { top: 108px; left: 104px; }
-  .cell.n { top: 30px; left: 104px; }
-  .cell.ne { top: 69px; left: 172px; }
-  .cell.se { top: 147px; left: 172px; }
-  .cell.s { top: 186px; left: 104px; }
-  .cell.sw { top: 147px; left: 36px; }
-  .cell.nw { top: 69px; left: 36px; }
-
-  .controls {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin: 8px 0 18px;
-  }
-  .btn {
-    border: 1px solid #d4d4d4;
-    background: #fff;
-    color: var(--fg);
-    border-radius: 999px;
-    padding: 10px 18px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.1s;
-  }
-  .btn:hover { background: #f6f6f6; }
-  .btn.primary { background: var(--fg); color: #fff; border-color: var(--fg); }
-  .btn.primary:hover { background: #000; }
-
-  .progress {
-    margin: 8px 4px 16px;
-  }
-  .progress-bar {
-    position: relative;
-    height: 4px;
-    background: var(--line);
-    border-radius: 2px;
-    margin: 18px 0 8px;
-  }
-  .progress-fill {
-    position: absolute;
-    top: 0; left: 0;
-    height: 100%;
-    background: var(--accent);
-    border-radius: 2px;
-    transition: width 0.25s;
-  }
-  .progress-dot {
-    position: absolute;
-    top: 50%;
-    width: 10px; height: 10px;
-    border-radius: 50%;
-    background: var(--line);
-    transform: translate(-50%, -50%);
-  }
-  .progress-dot.reached { background: var(--accent-dark); }
-  .progress-dot.current {
-    width: 28px; height: 28px;
-    background: var(--accent);
-    color: var(--fg);
-    font-size: 12px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .tier-label {
-    text-align: left;
-    font-size: 13px;
-    color: var(--fg);
-    font-weight: 600;
-  }
-  .tier-label .score {
-    color: var(--muted);
-    font-weight: 400;
-    margin-left: 6px;
+  .target:hover{transform:translateY(-1px)}
+  .target.t1{border-color:var(--t1)}
+  .target.t2{border-color:var(--t2)}
+  .target.t3{border-color:var(--t3)}
+  .target.active{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.1)}
+  .target.complete{opacity:.55}
+  .target .num{font-size:28px;font-weight:800;line-height:1}
+  .target .meta{font-size:11px;color:var(--muted);margin-top:4px;letter-spacing:.5px;text-transform:uppercase}
+  .target .bee{
+    position:absolute;top:6px;right:6px;font-size:14px;
+    background:linear-gradient(135deg,#fff2a8,#d4af37);
+    border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;
+    box-shadow:0 2px 4px rgba(0,0,0,.15)
   }
 
-  .found {
-    margin-top: 10px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 10px 12px;
-    background: #fafafa;
-  }
-  .found h3 {
-    margin: 0 0 8px;
-    font-size: 13px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--muted);
-    display: flex;
-    justify-content: space-between;
-  }
-  .found ul {
-    margin: 0; padding: 0; list-style: none;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px 10px;
-  }
-  .found li {
-    font-size: 14px;
-    color: var(--fg);
-  }
-  .found li.pansum { color: var(--accent-dark); font-weight: 700; }
+  /* input row */
+  .input-wrap{margin:8px 0 2px;min-height:54px;display:flex;flex-direction:column;align-items:center}
+  .input-row{display:flex;align-items:center;justify-content:center;gap:6px;font-size:26px;font-weight:700;
+    letter-spacing:.5px;min-height:38px;flex-wrap:wrap}
+  .input-row .chip{padding:2px 12px;border-radius:8px;background:#f1ebdc}
+  .input-row .chip.center{background:var(--accent)}
+  .input-row .op{color:var(--muted);font-weight:400}
+  .input-row .equals{margin-left:8px;color:var(--muted);font-size:18px;font-weight:500}
+  .input-row.empty{color:#bbb;font-size:15px;font-weight:400}
+  .feedback{min-height:18px;font-size:13px;margin-top:4px;text-align:center}
+  .feedback.good{color:var(--good)}
+  .feedback.bad{color:var(--bad)}
+  .feedback.gold{color:var(--gold);font-weight:700}
 
-  footer {
-    text-align: center;
-    color: var(--muted);
-    font-size: 11px;
-    padding: 20px 12px 30px;
+  /* hive */
+  .hive{position:relative;width:300px;height:316px;margin:6px auto 14px}
+  .cell{position:absolute;width:92px;height:104px;cursor:pointer;user-select:none;transition:transform .08s}
+  .cell:active{transform:scale(.93)}
+  .cell.used polygon{fill:#cfc6b3 !important}
+  .cell svg{width:100%;height:100%;display:block}
+  .cell polygon{fill:#ece4d6;stroke:#fff;stroke-width:2;transition:fill .15s}
+  .cell.center polygon{fill:var(--accent)}
+  .cell.center.used polygon{fill:#bfa006 !important}
+  .cell text{font-size:32px;font-weight:800;text-anchor:middle;dominant-baseline:central;
+    fill:var(--fg);pointer-events:none}
+  .cell.pop{animation:pop .22s ease-out}
+  @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.12)}100%{transform:scale(1)}}
+  .cell.c{top:106px;left:104px}
+  .cell.n{top:28px;left:104px}
+  .cell.ne{top:67px;left:172px}
+  .cell.se{top:145px;left:172px}
+  .cell.s{top:184px;left:104px}
+  .cell.sw{top:145px;left:36px}
+  .cell.nw{top:67px;left:36px}
+
+  /* controls */
+  .controls{display:flex;justify-content:center;gap:10px;margin:4px 0 14px}
+  .btn{border:1px solid #d4cdbf;background:var(--card);color:var(--fg);border-radius:999px;
+    padding:10px 18px;font-size:14px;font-weight:600;cursor:pointer;transition:all .1s;font-family:inherit}
+  .btn:hover{background:#f5efe1}
+  .btn.primary{background:var(--fg);color:#fff;border-color:var(--fg)}
+  .btn.primary:hover{background:#000}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+
+  /* chain meter */
+  .chain{display:flex;align-items:center;gap:10px;margin:6px 0 16px;padding:10px 12px;
+    background:var(--card);border-radius:12px;border:1px solid var(--line);box-shadow:var(--shadow)}
+  .chain-info{flex:1;display:flex;flex-direction:column;gap:2px}
+  .chain-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+  .chain-val{font-size:18px;font-weight:800}
+  .chain-val.hot{color:var(--t2)}
+  .chain-bar{position:relative;flex:2;height:10px;background:var(--line);border-radius:5px;overflow:hidden}
+  .chain-fill{position:absolute;left:0;top:0;bottom:0;width:0%;
+    background:linear-gradient(90deg,var(--t1),var(--accent),var(--t2));
+    transition:width .1s linear}
+  .chain-score{font-size:18px;font-weight:800;min-width:60px;text-align:right}
+
+  /* progress */
+  .progress{margin:4px 4px 12px}
+  .tier-row{display:flex;justify-content:space-between;font-size:13px;font-weight:600}
+  .tier-row .score{color:var(--muted);font-weight:400}
+  .progress-bar{position:relative;height:4px;background:var(--line);border-radius:2px;margin:18px 0 10px}
+  .progress-fill{position:absolute;top:0;left:0;height:100%;background:var(--accent);border-radius:2px;
+    transition:width .25s}
+  .progress-dot{position:absolute;top:50%;width:10px;height:10px;border-radius:50%;background:var(--line);
+    transform:translate(-50%,-50%)}
+  .progress-dot.reached{background:var(--accent-dark)}
+  .progress-dot.current{width:30px;height:30px;background:var(--accent);font-size:12px;font-weight:800;
+    color:var(--fg);display:flex;align-items:center;justify-content:center;
+    box-shadow:0 2px 6px rgba(0,0,0,.1)}
+
+  /* found list */
+  .found{margin-top:10px;border:1px solid var(--line);border-radius:12px;background:var(--card);
+    box-shadow:var(--shadow);overflow:hidden}
+  .found summary{padding:10px 14px;font-size:13px;text-transform:uppercase;letter-spacing:1px;
+    color:var(--muted);cursor:pointer;display:flex;justify-content:space-between;align-items:center;
+    list-style:none}
+  .found summary::-webkit-details-marker{display:none}
+  .found summary .caret{transition:transform .2s}
+  details[open] .caret{transform:rotate(180deg)}
+  .found-body{padding:0 14px 12px}
+  .found-group{margin-top:8px}
+  .found-group h4{margin:0 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+  .found-group ul{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px 10px}
+  .found-group li{font-size:14px}
+  .found-group li.pansum{color:var(--gold);font-weight:800}
+
+  /* modal */
+  .scrim{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;
+    justify-content:center;z-index:50;padding:16px}
+  .scrim.show{display:flex}
+  .modal{background:var(--card);border-radius:16px;padding:20px 22px;max-width:380px;width:100%;
+    box-shadow:0 12px 40px rgba(0,0,0,.2);position:relative}
+  .modal h2{margin:0 0 8px;font-size:20px}
+  .modal p{margin:0 0 10px;font-size:14px;color:#333;line-height:1.4}
+  .modal .close{position:absolute;top:10px;right:10px;background:transparent;border:none;font-size:20px;
+    cursor:pointer;color:var(--muted)}
+  .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+  .stat{text-align:center;background:#f7f1e2;padding:10px;border-radius:10px}
+  .stat .v{font-size:22px;font-weight:800}
+  .stat .k{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+  .share-block{background:#1a1a1a;color:#eee;font-family:ui-monospace,Menlo,Consolas,monospace;
+    padding:12px;border-radius:10px;font-size:12px;line-height:1.5;white-space:pre-wrap;margin:8px 0}
+
+  /* toast */
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;
+    padding:10px 18px;border-radius:999px;font-size:13px;font-weight:600;z-index:40;
+    opacity:0;transition:opacity .2s,transform .2s;pointer-events:none}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
+
+  /* gold flash */
+  @keyframes goldflash{0%{background:#fff2a8}100%{background:transparent}}
+  .gold-flash{animation:goldflash 1.6s ease-out}
+
+  /* confetti */
+  .confetti{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:60;overflow:hidden}
+  .confetti i{position:absolute;width:8px;height:14px;top:-20px;opacity:.9;border-radius:1px;
+    animation:fall 1.6s linear forwards}
+  @keyframes fall{
+    0%{transform:translateY(-20px) rotate(0)}
+    100%{transform:translateY(110vh) rotate(720deg);opacity:.4}
   }
 
-  @media (max-width: 400px) {
-    .hive { transform: scale(0.95); }
+  @media (max-width:400px){
+    .hive{transform:scale(.92)}
+    .target .num{font-size:24px}
   }
 </style>
 </head>
 <body>
 <header>
-  <h1>MATH BEE</h1>
-  <div class="sub">addition puzzle &middot; spelling-bee style</div>
+  <div class="brand">
+    <h1>MATH BEE</h1>
+    <span class="puzzle-id" id="puzzleId">#000</span>
+  </div>
+  <div class="icons">
+    <button class="icon-btn" id="howBtn" title="How to play">ⓘ</button>
+    <button class="icon-btn" id="statsBtn" title="Stats">📊</button>
+  </div>
 </header>
 
 <main>
-  <div class="target">
-    <div class="label">Target sum</div>
-    <div class="value" id="target">--</div>
-  </div>
-  <div class="rule">
-    Make sums that equal the target. Must use the <b>yellow</b> digit. Each digit at most once per equation. Length 2+.
-  </div>
+  <div class="targets" id="targets"></div>
 
-  <div id="inputRow" class="input-row empty">
-    <span class="placeholder">tap digits to build a sum</span>
+  <div class="input-wrap">
+    <div id="inputRow" class="input-row empty">tap digits to build a sum</div>
+    <div id="feedback" class="feedback"></div>
   </div>
-  <div id="feedback" class="feedback"></div>
 
   <div class="hive" id="hive"></div>
 
   <div class="controls">
-    <button class="btn" id="deleteBtn">Delete</button>
-    <button class="btn" id="shuffleBtn">Shuffle</button>
-    <button class="btn primary" id="enterBtn">Enter</button>
+    <button class="btn" id="deleteBtn">⌫ Delete</button>
+    <button class="btn" id="shuffleBtn">⟳ Shuffle</button>
+    <button class="btn primary" id="enterBtn">Enter ↵</button>
+  </div>
+
+  <div class="chain" id="chain">
+    <div class="chain-info">
+      <span class="chain-label">Combo Chain</span>
+      <span class="chain-val" id="chainVal">×1</span>
+    </div>
+    <div class="chain-bar"><div class="chain-fill" id="chainFill"></div></div>
+    <div class="chain-score" id="scoreBig">0</div>
   </div>
 
   <div class="progress">
-    <div class="tier-label">
+    <div class="tier-row">
       <span id="tierName">Beginner</span>
-      <span class="score" id="scoreLabel">0 pts</span>
+      <span class="score"><span id="scoreLabel">0</span> pts</span>
     </div>
     <div class="progress-bar">
       <div class="progress-fill" id="progressFill" style="width:0%"></div>
@@ -285,340 +235,653 @@
     </div>
   </div>
 
-  <div class="found">
-    <h3>
-      <span>Your sums</span>
-      <span id="foundCount">0 / 0</span>
-    </h3>
-    <ul id="foundList"></ul>
-  </div>
+  <details class="found" open>
+    <summary>
+      <span>Your sums &nbsp;<span id="foundCount" style="color:var(--muted)">0 / 0</span></span>
+      <span class="caret">▾</span>
+    </summary>
+    <div class="found-body" id="foundBody"></div>
+  </details>
 </main>
 
-<footer>
-  prototype &middot; <a href="#" id="newPuzzle">new puzzle</a>
-</footer>
+<!-- How-to modal -->
+<div class="scrim" id="howScrim">
+  <div class="modal">
+    <button class="close" data-close="howScrim">×</button>
+    <h2>How to play 🐝</h2>
+    <p>Tap digits in the honeycomb to build an addition that equals one of the <b>three target sums</b> at the top.</p>
+    <ul style="margin:0 0 10px;padding-left:20px;font-size:14px;line-height:1.5">
+      <li>Every sum <b>must include the yellow center</b> digit.</li>
+      <li>Use each digit at most <b>once</b> per equation. Minimum length 2.</li>
+      <li>Solve sums within 10s of each other to build a <b>combo chain</b> (×2, ×3, ×5).</li>
+      <li>The <b>🐝 Bee</b> target has just one secret solution using <b>all 7 digits</b>. Worth a big bonus.</li>
+      <li>Keyboard: <kbd>1–9</kbd> add digits, <kbd>Enter</kbd> submit, <kbd>⌫</kbd> delete, <kbd>Space</kbd> shuffle.</li>
+    </ul>
+    <p style="color:var(--muted);font-size:12px">A new puzzle each day. Same puzzle for everyone.</p>
+  </div>
+</div>
+
+<!-- Stats modal -->
+<div class="scrim" id="statsScrim">
+  <div class="modal">
+    <button class="close" data-close="statsScrim">×</button>
+    <h2 id="statsTitle">Stats</h2>
+    <div class="stats-grid">
+      <div class="stat"><div class="v" id="stScore">0</div><div class="k">Score</div></div>
+      <div class="stat"><div class="v" id="stStreak">0</div><div class="k">Streak</div></div>
+      <div class="stat"><div class="v" id="stChain">0</div><div class="k">Best Chain</div></div>
+    </div>
+    <div class="share-block" id="shareText">Math Bee #000 — 0 pts</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn primary" id="shareBtn" style="flex:1">Share result</button>
+      <button class="btn" id="newRandomBtn">Random puzzle</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script>
-(function () {
-  "use strict";
+(function(){
+"use strict";
 
-  // ---------- Puzzle generation ----------
-  // Pick 7 digits (1-9, distinct) and a target so there are several valid
-  // subsets including the center digit summing to the target.
-  function allSubsets(arr) {
-    const out = [[]];
-    for (const x of arr) {
-      const n = out.length;
-      for (let i = 0; i < n; i++) out.push(out[i].concat([x]));
-    }
-    return out;
+// ---------- Seeded RNG ----------
+function mulberry32(seed){
+  return function(){
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed>>>15, 1|seed);
+    t = t + Math.imul(t ^ t>>>7, 61|t) ^ t;
+    return ((t ^ t>>>14) >>> 0) / 4294967296;
+  };
+}
+function todaySeed(){
+  const d = new Date();
+  return d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate();
+}
+function puzzleIdFromSeed(s){
+  // small visible id
+  const epoch = 20240101;
+  return Math.max(1, s - epoch);
+}
+
+// ---------- Puzzle generation ----------
+function allSubsets(arr){
+  const out=[[]];
+  for(const x of arr){
+    const n=out.length;
+    for(let i=0;i<n;i++) out.push(out[i].concat([x]));
   }
-
-  function findValidCombos(digits, center, target) {
-    const others = digits.filter(d => d !== center);
+  return out;
+}
+function pickDistinct(rand, pool, k){
+  const a=pool.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(rand()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a.slice(0,k).sort((x,y)=>x-y);
+}
+function generatePuzzle(seed){
+  const rand = mulberry32(seed);
+  // Find a 7-digit set + center such that:
+  //  - target3 = sum of all 7  -> exactly 1 combo (the Bee)
+  //  - target1 has 3-6 combos in a smaller sum range
+  //  - target2 has 2-5 combos in a mid sum range
+  for(let tries=0; tries<6000; tries++){
+    const digits = pickDistinct(rand, [1,2,3,4,5,6,7,8,9], 7);
+    const totalAll = digits.reduce((a,b)=>a+b,0);
+    const center = digits[Math.floor(rand()*7)];
+    const others = digits.filter(d=>d!==center);
     const subs = allSubsets(others);
-    const combos = [];
-    for (const s of subs) {
+    // bucket sums
+    const bySum = new Map(); // sum -> [combo]
+    for(const s of subs){
       const full = [center, ...s];
-      if (full.length < 2) continue;
-      if (full.reduce((a, b) => a + b, 0) === target) {
-        combos.push(full.slice().sort((a, b) => a - b));
-      }
+      if(full.length<2) continue;
+      const sm = full.reduce((a,b)=>a+b,0);
+      if(!bySum.has(sm)) bySum.set(sm, []);
+      bySum.get(sm).push(full.slice().sort((a,b)=>a-b));
     }
-    return combos;
-  }
-
-  function pickPuzzle() {
-    // Try random puzzles until we get one with 6-14 valid combos and
-    // at least one combo using all 7 digits (a "pansum").
-    const rng = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-    for (let tries = 0; tries < 5000; tries++) {
-      // sample 7 distinct digits from 1..9
-      const pool = [1,2,3,4,5,6,7,8,9];
-      for (let i = pool.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [pool[i], pool[j]] = [pool[j], pool[i]];
-      }
-      const digits = pool.slice(0, 7).sort((a, b) => a - b);
-      const total = digits.reduce((a, b) => a + b, 0);
-      const center = digits[rng(0, 6)];
-      // target = sum of all digits => pansum is guaranteed, but only 1 combo.
-      // Try target a bit less than total.
-      const target = rng(Math.max(center + 1, Math.floor(total / 2)), total);
-      const combos = findValidCombos(digits, center, target);
-      const hasPansum = combos.some(c => c.length === 7);
-      if (combos.length >= 6 && combos.length <= 16 && hasPansum) {
-        return { digits, center, target, combos };
-      }
+    // candidate targets
+    const sums = [...bySum.keys()].sort((a,b)=>a-b);
+    if(!bySum.has(totalAll)) continue;
+    // target1: smallest available with 3-6 combos
+    let t1=null;
+    for(const s of sums){
+      if(s===totalAll) continue;
+      const cnt = bySum.get(s).length;
+      if(cnt>=3 && cnt<=6 && s < totalAll*0.55){ t1=s; break; }
     }
-    // Fallback hand-tuned puzzle
-    const digits = [1,2,3,4,5,6,7];
-    const center = 4;
-    const target = 12;
-    return { digits, center, target, combos: findValidCombos(digits, center, target) };
-  }
-
-  // ---------- State ----------
-  let puzzle = pickPuzzle();
-  let outerOrder = puzzle.digits.filter(d => d !== puzzle.center);
-  shuffle(outerOrder);
-  let entered = []; // array of digit values currently in input
-  let usedIndices = new Set(); // cell indices used (0 = center, 1..6 outer)
-  let foundKeys = new Set(); // canonical keys of found combos
-  let found = []; // [{digits:[...], pts, pansum}]
-  const COMBO_KEYS = puzzle.combos.map(comboKey);
-  const TOTAL_POINTS = puzzle.combos.reduce((s, c) => s + comboPoints(c), 0);
-
-  function comboKey(arr) { return arr.slice().sort((a, b) => a - b).join(","); }
-  function comboPoints(arr) {
-    let pts = arr.length - 1; // length 2 -> 1 pt, length 3 -> 2 pt, ...
-    if (arr.length === 7) pts += 7; // pansum bonus
-    return pts;
-  }
-  function shuffle(a) {
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
+    if(t1==null) continue;
+    let t2=null;
+    for(const s of sums){
+      if(s===totalAll || s===t1) continue;
+      const cnt = bySum.get(s).length;
+      if(cnt>=2 && cnt<=5 && s>t1 && s < totalAll*0.85){ t2=s; break; }
     }
-    return a;
+    if(t2==null) continue;
+    const t3 = totalAll;
+    return {
+      digits, center,
+      targets:[
+        {value:t1, combos:bySum.get(t1), color:"t1"},
+        {value:t2, combos:bySum.get(t2), color:"t2"},
+        {value:t3, combos:bySum.get(t3), color:"t3", isBee:true},
+      ]
+    };
   }
-
-  // ---------- Tiers (Spelling Bee style) ----------
-  const TIERS = [
-    { name: "Beginner",    pct: 0 },
-    { name: "Good Start",  pct: 0.05 },
-    { name: "Moving Up",   pct: 0.15 },
-    { name: "Good",        pct: 0.25 },
-    { name: "Solid",       pct: 0.40 },
-    { name: "Nice",        pct: 0.50 },
-    { name: "Great",       pct: 0.65 },
-    { name: "Amazing",     pct: 0.80 },
-    { name: "Genius",      pct: 0.90 },
-    { name: "Math Bee",    pct: 1.0 },
-  ];
-
-  function currentTier(score) {
-    const pct = TOTAL_POINTS > 0 ? score / TOTAL_POINTS : 0;
-    let cur = TIERS[0];
-    for (const t of TIERS) if (pct >= t.pct) cur = t;
-    return cur;
+  // Fallback: deterministic
+  const digits=[1,2,3,4,5,6,7], center=4;
+  const others=digits.filter(d=>d!==center);
+  const subs = allSubsets(others);
+  const bySum=new Map();
+  for(const s of subs){
+    const full=[center,...s];
+    if(full.length<2) continue;
+    const sm=full.reduce((a,b)=>a+b,0);
+    if(!bySum.has(sm)) bySum.set(sm,[]);
+    bySum.get(sm).push(full.slice().sort((a,b)=>a-b));
   }
+  return {
+    digits, center,
+    targets:[
+      {value:10, combos:bySum.get(10)||[], color:"t1"},
+      {value:14, combos:bySum.get(14)||[], color:"t2"},
+      {value:28, combos:bySum.get(28)||[], color:"t3", isBee:true},
+    ]
+  };
+}
 
-  // ---------- Render ----------
-  const HIVE_POS = ["c", "n", "ne", "se", "s", "sw", "nw"];
-  const $ = (id) => document.getElementById(id);
+// ---------- State ----------
+const SEED = todaySeed();
+let puzzle = generatePuzzle(SEED);
+let pid = puzzleIdFromSeed(SEED);
+let outerOrder = puzzle.digits.filter(d=>d!==puzzle.center);
+shuffle(outerOrder, Math.random);
 
-  function buildHive() {
-    const hive = $("hive");
-    hive.innerHTML = "";
-    const positions = ["c", "n", "ne", "se", "s", "sw", "nw"];
-    const digitForPos = (i) => i === 0 ? puzzle.center : outerOrder[i - 1];
-    for (let i = 0; i < 7; i++) {
-      const div = document.createElement("div");
-      div.className = "cell " + positions[i] + (i === 0 ? " center" : "");
-      div.dataset.idx = i;
-      div.innerHTML = `
-        <svg viewBox="0 0 100 112">
-          <polygon points="50,3 97,28 97,84 50,109 3,84 3,28"/>
-          <text x="50" y="58">${digitForPos(i)}</text>
-        </svg>`;
-      div.addEventListener("click", () => onCellClick(i));
-      hive.appendChild(div);
-    }
+let activeTarget = 0;
+let entered = [];        // digit values
+let usedIdx = [];        // cell indices, ordered
+let foundByTarget = puzzle.targets.map(()=>new Set());
+let foundList = puzzle.targets.map(()=>[]); // list of {digits, pts}
+let score = 0;
+let bestChain = 0;
+
+// chain
+const CHAIN_MS = 10000;
+let chainCount = 0;
+let chainExpiresAt = 0;
+let chainRAF = null;
+
+// ---------- Helpers ----------
+function shuffle(a, randFn){
+  randFn = randFn || Math.random;
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(randFn()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
   }
+  return a;
+}
+function comboKey(arr){ return arr.slice().sort((a,b)=>a-b).join(","); }
+function comboPts(arr, isBee){
+  let p = arr.length - 1;
+  if(isBee) p += 10;
+  return p;
+}
+function totalPointsFor(target){
+  return target.combos.reduce((s,c)=>s+comboPts(c, !!target.isBee), 0);
+}
+function totalPossibleScore(){
+  // assume max ×1 multiplier for the tier ladder (no chain bonus baked in)
+  return puzzle.targets.reduce((s,t)=>s+totalPointsFor(t),0);
+}
+const TOTAL_POSSIBLE = totalPossibleScore();
 
-  function renderInput(feedbackText, feedbackKind) {
-    const row = $("inputRow");
-    if (entered.length === 0) {
-      row.className = "input-row empty";
-      row.innerHTML = '<span class="placeholder">tap digits to build a sum</span>';
-    } else {
-      row.className = "input-row";
-      const parts = [];
-      entered.forEach((d, idx) => {
-        if (idx > 0) parts.push('<span class="op">+</span>');
-        const isCenter = d === puzzle.center;
-        parts.push(`<span class="chip${isCenter ? " center" : ""}">${d}</span>`);
-      });
-      const sum = entered.reduce((a, b) => a + b, 0);
-      parts.push(`<span class="sum">= ${sum}</span>`);
-      row.innerHTML = parts.join("");
-    }
-    const fb = $("feedback");
-    fb.textContent = feedbackText || "";
-    fb.className = "feedback" + (feedbackKind ? " " + feedbackKind : "");
+// ---------- Tiers ----------
+const TIERS=[
+  {name:"Beginner",pct:0},
+  {name:"Good Start",pct:.05},
+  {name:"Moving Up",pct:.12},
+  {name:"Good",pct:.22},
+  {name:"Solid",pct:.35},
+  {name:"Nice",pct:.50},
+  {name:"Great",pct:.65},
+  {name:"Amazing",pct:.80},
+  {name:"Genius",pct:.92},
+  {name:"Math Bee",pct:1.0},
+];
+function currentTier(){
+  const pct = TOTAL_POSSIBLE>0 ? Math.min(1, score/TOTAL_POSSIBLE) : 0;
+  let cur = TIERS[0];
+  for(const t of TIERS) if(pct>=t.pct) cur = t;
+  return cur;
+}
+
+// ---------- Persistence ----------
+const STATE_KEY = "mathbee:v1:"+SEED;
+const STREAK_KEY = "mathbee:streak";
+const BESTCHAIN_KEY = "mathbee:bestChain";
+
+function saveProgress(){
+  try{
+    localStorage.setItem(STATE_KEY, JSON.stringify({
+      foundList: foundList.map(arr=>arr.map(f=>({digits:f.digits,pts:f.pts}))),
+      score, bestChain
+    }));
+    localStorage.setItem(BESTCHAIN_KEY, String(Math.max(parseInt(localStorage.getItem(BESTCHAIN_KEY)||"0",10), bestChain)));
+  }catch(e){}
+}
+function loadProgress(){
+  try{
+    const raw = localStorage.getItem(STATE_KEY);
+    if(!raw) return;
+    const obj = JSON.parse(raw);
+    if(!obj || !Array.isArray(obj.foundList)) return;
+    foundList = obj.foundList;
+    foundByTarget = puzzle.targets.map((t,i)=>{
+      const set = new Set();
+      (foundList[i]||[]).forEach(f=>set.add(comboKey(f.digits)));
+      return set;
+    });
+    score = obj.score|0;
+    bestChain = obj.bestChain|0;
+  }catch(e){}
+}
+
+// daily streak: bump if a new day was played
+function bumpStreakIfPlayed(){
+  try{
+    const today = SEED;
+    const lastPlayed = parseInt(localStorage.getItem("mathbee:lastPlayed")||"0",10);
+    let streak = parseInt(localStorage.getItem(STREAK_KEY)||"0",10);
+    if(lastPlayed === today) return streak;
+    // is yesterday?
+    const y = new Date();
+    y.setDate(y.getDate()-1);
+    const yest = y.getFullYear()*10000 + (y.getMonth()+1)*100 + y.getDate();
+    if(lastPlayed === yest) streak += 1;
+    else streak = 1;
+    localStorage.setItem(STREAK_KEY, String(streak));
+    localStorage.setItem("mathbee:lastPlayed", String(today));
+    return streak;
+  }catch(e){ return 0; }
+}
+
+// ---------- Rendering ----------
+const $ = id => document.getElementById(id);
+
+function renderTargets(){
+  const root = $("targets");
+  root.innerHTML = "";
+  puzzle.targets.forEach((t,i)=>{
+    const el = document.createElement("div");
+    const total = t.combos.length;
+    const done = foundByTarget[i].size;
+    const complete = done >= total;
+    el.className = "target "+t.color + (i===activeTarget ? " active":"") + (complete?" complete":"");
+    el.innerHTML = `
+      ${t.isBee?'<div class="bee" title="Bee sum">🐝</div>':''}
+      <div class="num">${t.value}</div>
+      <div class="meta">${done}/${total}${t.isBee?' bee':''}</div>
+    `;
+    el.addEventListener("click", ()=>{ activeTarget=i; renderTargets(); });
+    root.appendChild(el);
+  });
+}
+
+function renderInput(){
+  const row = $("inputRow");
+  if(entered.length===0){
+    row.className = "input-row empty";
+    row.textContent = "tap digits to build a sum";
+    return;
   }
+  row.className = "input-row";
+  const parts = [];
+  entered.forEach((d,i)=>{
+    if(i>0) parts.push('<span class="op">+</span>');
+    parts.push(`<span class="chip${d===puzzle.center?' center':''}">${d}</span>`);
+  });
+  const sum = entered.reduce((a,b)=>a+b,0);
+  const target = puzzle.targets[activeTarget].value;
+  const cls = sum===target ? "good" : (sum>target ? "bad" : "");
+  parts.push(`<span class="equals ${cls}">= ${sum}</span>`);
+  row.innerHTML = parts.join("");
+}
 
-  function renderFound() {
-    const list = $("foundList");
-    list.innerHTML = "";
-    // sort by length asc, then numerically
-    const sorted = found.slice().sort((a, b) => {
-      if (a.digits.length !== b.digits.length) return a.digits.length - b.digits.length;
+function renderHive(){
+  const hive = $("hive");
+  hive.innerHTML = "";
+  const positions = ["c","n","ne","se","s","sw","nw"];
+  for(let i=0;i<7;i++){
+    const div = document.createElement("div");
+    div.className = "cell "+positions[i]+(i===0?" center":"");
+    div.dataset.idx = i;
+    if(usedIdx.includes(i)) div.classList.add("used");
+    const d = i===0 ? puzzle.center : outerOrder[i-1];
+    div.innerHTML = `
+      <svg viewBox="0 0 100 112">
+        <polygon points="50,3 97,28 97,84 50,109 3,84 3,28"/>
+        <text x="50" y="58">${d}</text>
+      </svg>`;
+    div.addEventListener("click", ()=>onCellClick(i));
+    hive.appendChild(div);
+  }
+}
+
+function renderChain(){
+  $("chainVal").textContent = "×" + Math.max(1, chainMultiplier());
+  $("chainVal").classList.toggle("hot", chainCount>=2);
+  $("scoreBig").textContent = score;
+  if(chainCount<1){
+    $("chainFill").style.width = "0%";
+  }
+}
+
+function renderScore(){
+  $("scoreLabel").textContent = score;
+  const tier = currentTier();
+  $("tierName").textContent = tier.name;
+  const pct = TOTAL_POSSIBLE>0 ? Math.min(1, score/TOTAL_POSSIBLE):0;
+  $("progressFill").style.width = (pct*100)+"%";
+  const dots = $("progressDots");
+  dots.innerHTML = "";
+  TIERS.forEach(t=>{
+    const dot = document.createElement("div");
+    const reached = pct>=t.pct;
+    const isCurrent = t===tier;
+    dot.className = "progress-dot"+(reached?" reached":"")+(isCurrent?" current":"");
+    dot.style.left = (t.pct*100)+"%";
+    if(isCurrent) dot.textContent = score;
+    dots.appendChild(dot);
+  });
+}
+
+function renderFound(){
+  const totalCombos = puzzle.targets.reduce((s,t)=>s+t.combos.length,0);
+  const totalFound = foundByTarget.reduce((s,set)=>s+set.size,0);
+  $("foundCount").textContent = totalFound + " / " + totalCombos;
+  const body = $("foundBody");
+  body.innerHTML = "";
+  puzzle.targets.forEach((t,i)=>{
+    const group = document.createElement("div");
+    group.className = "found-group";
+    const h = document.createElement("h4");
+    h.style.color = t.color==="t1"?"var(--t1)":(t.color==="t2"?"var(--t2)":"var(--t3)");
+    h.innerHTML = `${t.isBee?'🐝 ':''}Target ${t.value} <span style="color:var(--muted);font-weight:400">(${foundByTarget[i].size}/${t.combos.length})</span>`;
+    group.appendChild(h);
+    const ul = document.createElement("ul");
+    const sorted = (foundList[i]||[]).slice().sort((a,b)=>{
+      if(a.digits.length!==b.digits.length) return a.digits.length-b.digits.length;
       return comboKey(a.digits).localeCompare(comboKey(b.digits));
     });
-    for (const f of sorted) {
+    if(sorted.length===0){
+      ul.innerHTML = '<li style="color:var(--muted)">— no sums yet —</li>';
+    }
+    sorted.forEach(f=>{
       const li = document.createElement("li");
-      li.className = f.pansum ? "pansum" : "";
-      li.textContent = f.digits.join("+") + " = " + puzzle.target;
-      list.appendChild(li);
-    }
-    $("foundCount").textContent = found.length + " / " + puzzle.combos.length;
-  }
-
-  function renderProgress() {
-    const score = found.reduce((s, f) => s + f.pts, 0);
-    const tier = currentTier(score);
-    $("tierName").textContent = tier.name;
-    $("scoreLabel").textContent = score + " pts";
-    const pct = TOTAL_POINTS > 0 ? Math.min(1, score / TOTAL_POINTS) : 0;
-    $("progressFill").style.width = (pct * 100) + "%";
-    const dots = $("progressDots");
-    dots.innerHTML = "";
-    TIERS.forEach((t, i) => {
-      const dot = document.createElement("div");
-      const reached = pct >= t.pct;
-      const isCurrent = t === tier;
-      dot.className = "progress-dot" + (reached ? " reached" : "") + (isCurrent ? " current" : "");
-      dot.style.left = (t.pct * 100) + "%";
-      if (isCurrent) dot.textContent = score;
-      dots.appendChild(dot);
+      if(f.digits.length===7) li.className = "pansum";
+      li.textContent = f.digits.join(" + ") + " = " + t.value;
+      ul.appendChild(li);
     });
-  }
-
-  function renderTarget() {
-    $("target").textContent = puzzle.target;
-  }
-
-  // ---------- Interaction ----------
-  function digitForIdx(i) {
-    return i === 0 ? puzzle.center : outerOrder[i - 1];
-  }
-
-  function onCellClick(i) {
-    if (usedIndices.has(i)) {
-      // already used: do nothing (no repeats in same equation)
-      flash("each digit at most once per equation", "bad");
-      return;
-    }
-    usedIndices.add(i);
-    entered.push(digitForIdx(i));
-    renderInput();
-  }
-
-  function onDelete() {
-    if (entered.length === 0) return;
-    // Find the last index added matching the last digit
-    const lastDigit = entered.pop();
-    // Find a used index with that digit (highest index added). We don't track
-    // order of indices, so scan used indices for one matching the digit.
-    for (const idx of Array.from(usedIndices).reverse()) {
-      if (digitForIdx(idx) === lastDigit) {
-        usedIndices.delete(idx);
-        break;
-      }
-    }
-    renderInput();
-  }
-
-  function onShuffle() {
-    shuffle(outerOrder);
-    // clear current entry since the visual mapping changed
-    entered = [];
-    usedIndices.clear();
-    buildHive();
-    renderInput();
-  }
-
-  function onEnter() {
-    if (entered.length === 0) return;
-    if (entered.length < 2) {
-      flash("too short — at least 2 digits", "bad");
-      return;
-    }
-    if (!entered.includes(puzzle.center)) {
-      flash("missing the yellow digit", "bad");
-      return;
-    }
-    const sum = entered.reduce((a, b) => a + b, 0);
-    if (sum !== puzzle.target) {
-      flash("sum is " + sum + ", need " + puzzle.target, "bad");
-      return;
-    }
-    const key = comboKey(entered);
-    if (foundKeys.has(key)) {
-      flash("already found", "bad");
-      return;
-    }
-    if (!COMBO_KEYS.includes(key)) {
-      // shouldn't happen if all checks above pass and digits are valid,
-      // but guard anyway
-      flash("not a valid combo", "bad");
-      return;
-    }
-    foundKeys.add(key);
-    const pts = comboPoints(entered);
-    const pansum = entered.length === 7;
-    found.push({ digits: entered.slice().sort((a,b)=>a-b), pts, pansum });
-    const msg = pansum ? `Math Bee! +${pts}` : `+${pts}`;
-    flash(msg, "good");
-    entered = [];
-    usedIndices.clear();
-    renderInput();
-    renderFound();
-    renderProgress();
-  }
-
-  let flashTimer = null;
-  function flash(text, kind) {
-    const fb = $("feedback");
-    fb.textContent = text;
-    fb.className = "feedback " + kind;
-    if (flashTimer) clearTimeout(flashTimer);
-    flashTimer = setTimeout(() => { fb.textContent = ""; fb.className = "feedback"; }, 1400);
-  }
-
-  // ---------- Keyboard ----------
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") { onEnter(); return; }
-    if (e.key === "Backspace") { onDelete(); return; }
-    if (e.key === " ") { e.preventDefault(); onShuffle(); return; }
-    if (/^[1-9]$/.test(e.key)) {
-      const d = parseInt(e.key, 10);
-      // Find first unused cell matching this digit
-      for (let i = 0; i < 7; i++) {
-        if (!usedIndices.has(i) && digitForIdx(i) === d) {
-          onCellClick(i);
-          return;
-        }
-      }
-      flash("digit " + d + " not available", "bad");
-    }
+    group.appendChild(ul);
+    body.appendChild(group);
   });
+}
 
-  // ---------- Boot ----------
-  $("deleteBtn").addEventListener("click", onDelete);
-  $("shuffleBtn").addEventListener("click", onShuffle);
-  $("enterBtn").addEventListener("click", onEnter);
-  $("newPuzzle").addEventListener("click", (e) => {
-    e.preventDefault();
-    puzzle = pickPuzzle();
-    outerOrder = puzzle.digits.filter(d => d !== puzzle.center);
-    shuffle(outerOrder);
-    entered = [];
-    usedIndices.clear();
-    foundKeys.clear();
-    found = [];
-    // recompute totals for new puzzle
-    window.__refreshTotals && window.__refreshTotals();
-    location.reload(); // simplest: reload to reinitialize TOTAL_POINTS/COMBO_KEYS
-  });
+// ---------- Interaction ----------
+function digitForIdx(i){ return i===0?puzzle.center:outerOrder[i-1]; }
 
-  renderTarget();
-  buildHive();
+function onCellClick(i){
+  if(usedIdx.includes(i)){
+    flash("each digit at most once","bad");
+    return;
+  }
+  usedIdx.push(i);
+  entered.push(digitForIdx(i));
+  const cell = document.querySelector(`.cell[data-idx="${i}"]`);
+  if(cell){ cell.classList.add("used","pop"); setTimeout(()=>cell.classList.remove("pop"),250); }
   renderInput();
-  renderFound();
-  renderProgress();
+}
+function onDelete(){
+  if(entered.length===0) return;
+  entered.pop();
+  const idx = usedIdx.pop();
+  const cell = document.querySelector(`.cell[data-idx="${idx}"]`);
+  if(cell) cell.classList.remove("used");
+  renderInput();
+}
+function onShuffle(){
+  shuffle(outerOrder, Math.random);
+  entered = []; usedIdx = [];
+  renderHive(); renderInput();
+}
+
+function chainMultiplier(){
+  if(chainCount<=1) return 1;
+  if(chainCount===2) return 2;
+  if(chainCount===3) return 3;
+  return 5; // cap
+}
+function tickChain(){
+  if(chainRAF) cancelAnimationFrame(chainRAF);
+  function loop(){
+    const remaining = Math.max(0, chainExpiresAt - Date.now());
+    const pct = remaining / CHAIN_MS;
+    $("chainFill").style.width = (pct*100)+"%";
+    if(remaining<=0){
+      chainCount = 0;
+      renderChain();
+      return;
+    }
+    chainRAF = requestAnimationFrame(loop);
+  }
+  loop();
+}
+function bumpChain(){
+  chainCount += 1;
+  chainExpiresAt = Date.now() + CHAIN_MS;
+  if(chainCount > bestChain) bestChain = chainCount;
+  tickChain();
+}
+
+function onEnter(){
+  if(entered.length===0) return;
+  if(entered.length<2){ flash("need at least 2 digits","bad"); return; }
+  if(!entered.includes(puzzle.center)){ flash("must include the yellow digit","bad"); return; }
+  const sum = entered.reduce((a,b)=>a+b,0);
+  const target = puzzle.targets[activeTarget];
+  if(sum!==target.value){
+    flash(`sum is ${sum}, target is ${target.value}`,"bad");
+    return;
+  }
+  const key = comboKey(entered);
+  // valid combo?
+  const isValid = target.combos.some(c=>comboKey(c)===key);
+  if(!isValid){ flash("not a valid combo","bad"); return; }
+  if(foundByTarget[activeTarget].has(key)){ flash("already found","bad"); return; }
+
+  foundByTarget[activeTarget].add(key);
+  const basePts = comboPts(entered, !!target.isBee);
+  bumpChain();
+  const mult = chainMultiplier();
+  const gained = basePts * mult;
+  score += gained;
+  foundList[activeTarget].push({digits: entered.slice().sort((a,b)=>a-b), pts: gained});
+
+  if(target.isBee){
+    flash(`🐝 BEE! +${basePts}${mult>1?` ×${mult} = ${gained}`:""}`, "gold");
+    document.body.classList.add("gold-flash");
+    setTimeout(()=>document.body.classList.remove("gold-flash"), 1700);
+    confetti();
+  } else {
+    flash(mult>1 ? `+${basePts} ×${mult} = ${gained}` : `+${gained}`, "good");
+  }
+
+  entered = []; usedIdx = [];
+  renderHive(); renderInput(); renderTargets(); renderFound(); renderScore(); renderChain();
+  saveProgress();
+
+  // Auto-advance: if active target complete, pick first incomplete
+  if(foundByTarget[activeTarget].size >= target.combos.length){
+    for(let i=0;i<puzzle.targets.length;i++){
+      if(foundByTarget[i].size < puzzle.targets[i].combos.length){
+        activeTarget = i; renderTargets(); break;
+      }
+    }
+  }
+}
+
+let toastTimer = null;
+function flash(text, kind){
+  const fb = $("feedback");
+  fb.textContent = text;
+  fb.className = "feedback "+(kind||"");
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{ fb.textContent=""; fb.className="feedback"; }, 1600);
+}
+
+function confetti(){
+  const colors = ["#f9c80e","#d4af37","#4895ef","#f86624","#9d4edd","#2e7d32"];
+  const root = document.createElement("div");
+  root.className = "confetti";
+  for(let i=0;i<60;i++){
+    const e = document.createElement("i");
+    e.style.left = (Math.random()*100)+"%";
+    e.style.background = colors[i%colors.length];
+    e.style.animationDelay = (Math.random()*.3)+"s";
+    e.style.animationDuration = (1.2+Math.random()*0.8)+"s";
+    root.appendChild(e);
+  }
+  document.body.appendChild(root);
+  setTimeout(()=>root.remove(), 2200);
+}
+
+// ---------- Keyboard ----------
+document.addEventListener("keydown",(e)=>{
+  if(e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA") return;
+  if(e.key==="Enter"){ onEnter(); return; }
+  if(e.key==="Backspace"){ onDelete(); return; }
+  if(e.key===" "){ e.preventDefault(); onShuffle(); return; }
+  if(e.key==="Tab"){ e.preventDefault(); activeTarget=(activeTarget+1)%puzzle.targets.length; renderTargets(); return; }
+  if(/^[1-9]$/.test(e.key)){
+    const d = parseInt(e.key,10);
+    for(let i=0;i<7;i++){
+      if(!usedIdx.includes(i) && digitForIdx(i)===d){ onCellClick(i); return; }
+    }
+    flash("digit "+d+" not in this puzzle","bad");
+  }
+});
+
+// ---------- Modals ----------
+function openModal(id){ $(id).classList.add("show"); refreshStatsModal(); }
+function closeModal(id){ $(id).classList.remove("show"); }
+document.querySelectorAll("[data-close]").forEach(b=>{
+  b.addEventListener("click",()=>closeModal(b.dataset.close));
+});
+document.querySelectorAll(".scrim").forEach(s=>{
+  s.addEventListener("click",(e)=>{ if(e.target===s) s.classList.remove("show"); });
+});
+$("howBtn").addEventListener("click",()=>openModal("howScrim"));
+$("statsBtn").addEventListener("click",()=>openModal("statsScrim"));
+
+function tierEmoji(t){
+  const map = {"Beginner":"🌱","Good Start":"🌿","Moving Up":"🪴","Good":"🌳","Solid":"⭐",
+    "Nice":"🌟","Great":"💫","Amazing":"🏆","Genius":"🧠","Math Bee":"🐝"};
+  return map[t.name] || "🐝";
+}
+
+function buildShareText(){
+  const tier = currentTier();
+  const lines = [];
+  lines.push(`Math Bee #${pid} — ${score} pts ${tierEmoji(tier)} ${tier.name}`);
+  const rows = puzzle.targets.map((t,i)=>{
+    const done = foundByTarget[i].size;
+    const total = t.combos.length;
+    const symbol = t.isBee ? "🐝" : (t.color==="t1"?"🟦":"🟧");
+    let bar = "";
+    for(let k=0;k<total;k++) bar += (k<done?"■":"□");
+    return `${symbol} ${t.value}: ${bar}`;
+  });
+  lines.push(...rows);
+  if(bestChain>1) lines.push(`🔥 best chain ×${chainMultiplierFor(bestChain)} (${bestChain} hits)`);
+  lines.push("play: mathbee");
+  return lines.join("\n");
+}
+function chainMultiplierFor(c){
+  if(c<=1) return 1; if(c===2) return 2; if(c===3) return 3; return 5;
+}
+
+function refreshStatsModal(){
+  $("stScore").textContent = score;
+  const streak = parseInt(localStorage.getItem(STREAK_KEY)||"0",10);
+  $("stStreak").textContent = streak;
+  const bc = Math.max(bestChain, parseInt(localStorage.getItem(BESTCHAIN_KEY)||"0",10));
+  $("stChain").textContent = bc;
+  $("statsTitle").textContent = `Math Bee #${pid}`;
+  $("shareText").textContent = buildShareText();
+}
+$("shareBtn").addEventListener("click", async ()=>{
+  const text = buildShareText();
+  try{
+    if(navigator.share){
+      await navigator.share({text});
+    } else {
+      await navigator.clipboard.writeText(text);
+      toast("Result copied to clipboard");
+    }
+  }catch(e){
+    toast("Couldn't share — text shown below");
+  }
+});
+
+function toast(msg){
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(()=>t.classList.remove("show"), 1800);
+}
+
+$("newRandomBtn").addEventListener("click", ()=>{
+  // random puzzle (not daily) for replay
+  const newSeed = Math.floor(Math.random()*1e9);
+  puzzle = generatePuzzle(newSeed);
+  pid = "R-"+newSeed.toString(36).slice(0,5);
+  outerOrder = puzzle.digits.filter(d=>d!==puzzle.center);
+  shuffle(outerOrder, Math.random);
+  activeTarget = 0; entered=[]; usedIdx=[];
+  foundByTarget = puzzle.targets.map(()=>new Set());
+  foundList = puzzle.targets.map(()=>[]);
+  score = 0; bestChain = 0; chainCount = 0;
+  $("puzzleId").textContent = "#"+pid;
+  renderAll();
+  closeModal("statsScrim");
+});
+
+// ---------- Boot ----------
+$("deleteBtn").addEventListener("click", onDelete);
+$("shuffleBtn").addEventListener("click", onShuffle);
+$("enterBtn").addEventListener("click", onEnter);
+
+function renderAll(){
+  renderTargets(); renderHive(); renderInput();
+  renderFound(); renderScore(); renderChain();
+}
+
+$("puzzleId").textContent = "#"+pid;
+loadProgress();
+bumpStreakIfPlayed();
+renderAll();
+
+// first-time visitors: open how-to
+try{
+  if(!localStorage.getItem("mathbee:seenHow")){
+    openModal("howScrim");
+    localStorage.setItem("mathbee:seenHow","1");
+  }
+}catch(e){}
+
 })();
 </script>
 </body>
