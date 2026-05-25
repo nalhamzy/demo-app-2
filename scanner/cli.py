@@ -84,7 +84,8 @@ def _gather(stocks: list[str], crypto: list[str], interval: str, workers: int, q
 def _scan_once(args) -> list[sig.Signal]:
     if args.demo:
         from scanner.sources.fixture import demo_universe
-        bars_iter = demo_universe(args.interval)
+        wanted = {"stocks": {"stock"}, "crypto": {"crypto"}, "both": {"stock", "crypto"}}[args.asset]
+        bars_iter = [b for b in demo_universe(args.interval) if b.asset in wanted]
     else:
         stocks, crypto = _resolve_symbols(args)
         bars_iter = _gather(stocks, crypto, args.interval, args.workers, args.quiet)
